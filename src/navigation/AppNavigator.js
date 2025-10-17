@@ -9,9 +9,10 @@ import RegisterPage from '../screens/RegisterPage';
 import HomePage from '../screens/HomePage';
 import BarbershopDetailPage from '../screens/BarbershopDetailPage';
 import BookingPage from '../screens/BookingPage';
-import PaymentWebViewScreen from '../screens/PaymentWebViewScreen'; // ✅ TAMBAHKAN INI
+import PaymentWebViewScreen from '../screens/PaymentWebViewScreen';
 import { View, ActivityIndicator } from 'react-native';
 import MainTabNavigator from './MainTabNavigator';
+import ReviewScreen from '../screens/ReviewScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,31 +28,40 @@ const AuthStack = () => (
 const AppStack = () => (
   <Stack.Navigator>
     {/* Halaman utama sekarang adalah seluruh Tab Navigator */}
-    <Stack.Screen 
-      name="Main" 
-      component={MainTabNavigator} 
-      options={{ headerShown: false }} 
+    <Stack.Screen
+      name="Main"
+      component={MainTabNavigator}
+      options={{ headerShown: false }}
     />
 
     {/* Halaman lain yang bukan bagian dari tab */}
-    <Stack.Screen 
-      name="BarbershopDetail" 
-      component={BarbershopDetailPage} 
+    <Stack.Screen
+      name="BarbershopDetail"
+      component={BarbershopDetailPage}
       options={{ title: 'Detail Barbershop' }}
     />
-    <Stack.Screen 
-      name="Booking" 
-      component={BookingPage} 
-      options={{ title: 'Pilih Jadwal' }} 
+    <Stack.Screen
+      name="Booking"
+      component={BookingPage}
+      options={{ title: 'Pilih Jadwal' }}
     />
     {/* ✅ TAMBAHKAN SCREEN PAYMENT WEBVIEW */}
-    <Stack.Screen 
-      name="PaymentWebView" 
-      component={PaymentWebViewScreen} 
-      options={{ 
+    <Stack.Screen
+      name="PaymentWebView"
+      component={PaymentWebViewScreen}
+      options={{
         headerShown: false,
-        presentation: 'modal' // Tampil sebagai modal di iOS
-      }} 
+        presentation: 'modal', // Tampil sebagai modal di iOS
+      }}
+    />
+    <Stack.Screen
+      name="Review"
+      component={ReviewScreen}
+      options={{
+        title: 'Beri Review',
+        headerStyle: { backgroundColor: '#4F46E5' },
+        headerTintColor: '#fff',
+      }}
     />
   </Stack.Navigator>
 );
