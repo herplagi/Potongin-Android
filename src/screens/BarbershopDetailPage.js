@@ -1,4 +1,4 @@
-// src/screens/BarbershopDetailPage.js - UPDATED dengan Staff Section
+// src/screens/BarbershopDetailPage.js - VERSI KREATIF
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -25,7 +25,6 @@ const BarbershopDetailPage = () => {
     const fetchDetails = async () => {
       try {
         const response = await api.get(`/barbershops/detail/${barbershopId}`);
-        console.log('📥 Barbershop detail:', response.data);
         setBarbershop(response.data);
       } catch (error) {
         console.error('Gagal memuat detail:', error);
@@ -38,133 +37,99 @@ const BarbershopDetailPage = () => {
 
   const getImageUrl = () => {
     if (!barbershop) return null;
-    
     if (barbershop.main_image_url) {
-      if (barbershop.main_image_url.startsWith('http')) {
-        return barbershop.main_image_url;
-      } else {
-        return `http://10.0.2.2:5000${barbershop.main_image_url}`;
-      }
+      return barbershop.main_image_url.startsWith('http')
+        ? barbershop.main_image_url
+        : `http://10.0.2.2:5000${barbershop.main_image_url}`;
     }
-    
-    return `https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop`;
+    return 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop';
   };
 
   const getStaffImageUrl = (picture) => {
     if (!picture) return null;
-    if (picture.startsWith('http')) {
-      return picture;
-    }
-    return `http://10.0.2.2:5000${picture}`;
+    return picture.startsWith('http') ? picture : `http://10.0.2.2:5000${picture}`;
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={styles.loadingText}>Memuat detail barbershop...</Text>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={styles.loadingText}>Menyiapkan pengalaman Anda...</Text>
       </View>
     );
   }
 
   if (!barbershop) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={styles.centered}>
         <Text style={styles.errorText}>Barbershop tidak ditemukan.</Text>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text style={styles.backButtonText}>Kembali</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // ✅ Filter hanya staff yang aktif
   const activeStaff = barbershop.staff?.filter(s => s.is_active) || [];
 
   return (
     <ScrollView style={styles.container}>
-      {/* Hero Image */}
-      <Image
-        source={{ uri: getImageUrl() }}
-        style={styles.heroImage}
-        onError={(error) => {
-          console.log('❌ Image load error:', error.nativeEvent.error);
-          setImageError(true);
-        }}
-        onLoad={() => {
-          console.log('✅ Image loaded successfully');
-          setImageError(false);
-        }}
-      />
-      
-      {imageError && (
-        <View style={[styles.heroImage, styles.placeholderContainer]}>
-          <Text style={styles.placeholderText}>📷</Text>
-          <Text style={styles.placeholderSubtext}>Foto tidak tersedia</Text>
+      {/* Hero Section with Overlay */}
+      <View style={styles.heroWrapper}>
+        {imageError ? (
+          <View style={[styles.heroImage, styles.heroFallback]}>
+            <Text style={styles.heroFallbackText}>✂️</Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: getImageUrl() }}
+            style={styles.heroImage}
+            onError={() => setImageError(true)}
+            resizeMode="cover"
+          />
+        )}
+        <View style={styles.heroOverlay} />
+        <View style={styles.heroContent}>
+          <Text style={styles.heroTitle}>{barbershop.name}</Text>
+          <View style={styles.heroMeta}>
+            <Text style={styles.heroLocation}>📍 {barbershop.city}</Text>
+            <Text style={styles.heroRating}>⭐ 4.8 (251)</Text>
+          </View>
         </View>
-      )}
+      </View>
 
-      <View style={styles.contentContainer}>
-        {/* Title & Address */}
-        <Text style={styles.title}>{barbershop.name}</Text>
-        <Text style={styles.address}>
-          {barbershop.address}, {barbershop.city}
-        </Text>
-
-        {/* Rating Section */}
-        <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>⭐ 4.8</Text>
-          <Text style={styles.reviews}>(251 ulasan)</Text>
-        </View>
-
-        {/* Deskripsi */}
+      <View style={styles.content}>
+        {/* About */}
         {barbershop.description && (
-          <View style={styles.descriptionSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderIcon}>ℹ️</Text>
-              <Text style={styles.sectionHeaderText}>Tentang Barbershop</Text>
-            </View>
-            <View style={styles.descriptionCard}>
-              <Text style={styles.descriptionText}>
-                {barbershop.description}
-              </Text>
-            </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Tentang Kami</Text>
+            <Text style={styles.cardText}>{barbershop.description}</Text>
           </View>
         )}
 
-        {/* ✅ NEW: Staff Section */}
+        {/* Staff Highlight */}
         {activeStaff.length > 0 && (
-          <View style={styles.staffSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderIcon}>👨‍💼</Text>
-              <Text style={styles.sectionHeaderText}>Tim Kapster Kami</Text>
-            </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.staffScrollView}
-            >
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Meet the Artists</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.staffScroll}>
               {activeStaff.map((staff) => (
-                <View key={staff.staff_id} style={styles.staffCard}>
+                <View key={staff.staff_id} style={styles.staffProfile}>
                   {staff.picture ? (
                     <Image
                       source={{ uri: getStaffImageUrl(staff.picture) }}
-                      style={styles.staffPhoto}
+                      style={styles.staffImage}
                       resizeMode="cover"
                     />
                   ) : (
-                    <View style={styles.staffPhotoPlaceholder}>
-                      <Text style={styles.staffPhotoPlaceholderText}>
+                    <View style={[styles.staffImage, styles.staffInitialBg]}>
+                      <Text style={styles.staffInitial}>
                         {staff.name.charAt(0).toUpperCase()}
                       </Text>
                     </View>
                   )}
                   <Text style={styles.staffName}>{staff.name}</Text>
                   {staff.specialty && (
-                    <Text style={styles.staffSpecialty}>{staff.specialty}</Text>
+                    <Text style={styles.staffTag}>{staff.specialty}</Text>
                   )}
                 </View>
               ))}
@@ -172,279 +137,266 @@ const BarbershopDetailPage = () => {
           </View>
         )}
 
-        {/* Services Section */}
-        <Text style={styles.sectionTitle}>Pilih Layanan</Text>
-        {barbershop.services && barbershop.services.length > 0 ? (
-          barbershop.services.map(service => (
-            <View key={service.service_id} style={styles.serviceCard}>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.serviceDesc}>{service.description}</Text>
-                <Text style={styles.serviceDuration}>
-                  ⏱️ Durasi: {service.duration_minutes} menit
-                </Text>
+        {/* Services */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Layanan Unggulan</Text>
+          {barbershop.services && barbershop.services.length > 0 ? (
+            barbershop.services.map((service) => (
+              <View key={service.service_id} style={styles.serviceRow}>
+                <View style={styles.serviceInfo}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={styles.serviceDesc}>{service.description}</Text>
+                  <Text style={styles.serviceTime}>⏱️ {service.duration_minutes} menit</Text>
+                </View>
+                <View style={styles.serviceAction}>
+                  <Text style={styles.servicePrice}>
+                    Rp{Number(service.price).toLocaleString('id-ID')}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.ctaButton}
+                    onPress={() =>
+                      navigation.navigate('Booking', { service, barbershop })
+                    }
+                  >
+                    <Text style={styles.ctaText}>Pesan</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.serviceAction}>
-                <Text style={styles.servicePrice}>
-                  Rp {Number(service.price).toLocaleString('id-ID')}
-                </Text>
-                <TouchableOpacity
-                  style={styles.bookButton}
-                  onPress={() =>
-                    navigation.navigate('Booking', {
-                      service: service,
-                      barbershop: barbershop,
-                    })
-                  }
-                >
-                  <Text style={styles.bookButtonText}>Pesan</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))
-        ) : (
-          <View style={styles.noServiceContainer}>
-            <Text style={styles.noServiceText}>
-              Belum ada layanan yang tersedia.
-            </Text>
-          </View>
-        )}
+            ))
+          ) : (
+            <Text style={styles.emptyText}>Belum ada layanan tersedia.</Text>
+          )}
+        </View>
+
+        {/* Sticky CTA (Opsional: bisa diimplementasi dengan useScrollToTop atau sticky header) */}
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: 'white' 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  loadingContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    backgroundColor: 'white'
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#64748B',
-  },
-  errorContainer: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  errorText: { 
-    textAlign: 'center', 
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: '#7C3AED',
+    fontWeight: '500',
+  },
+  errorText: {
     fontSize: 16,
     color: '#EF4444',
-    marginBottom: 20,
+    textAlign: 'center',
+    marginBottom: 16,
   },
   backButton: {
-    backgroundColor: '#4F46E5',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   backButtonText: {
     color: 'white',
-    fontWeight: 'bold',
-  },
-  heroImage: { 
-    width: '100%', 
-    height: 250,
-    backgroundColor: '#E5E7EB'
-  },
-  placeholderContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-  },
-  placeholderText: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  placeholderSubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  contentContainer: { 
-    padding: 20 
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    color: '#1E293B' 
-  },
-  address: { 
-    fontSize: 16, 
-    color: '#64748B', 
-    marginTop: 4 
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 24,
-  },
-  rating: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E293B',
-  },
-  reviews: {
-    fontSize: 14,
-    color: '#64748B',
-    marginLeft: 8,
-  },
-  
-  // Deskripsi Styles
-  descriptionSection: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionHeaderIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  sectionHeaderText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
-  },
-  descriptionCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  descriptionText: {
-    fontSize: 15,
-    color: '#334155',
-    lineHeight: 24,
+    fontWeight: '600',
   },
 
-  // ✅ NEW: Staff Styles
-  staffSection: {
-    marginBottom: 24,
+  // HERO
+  heroWrapper: {
+    position: 'relative',
+    height: 240,
   },
-  staffScrollView: {
-    marginTop: 12,
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
-  staffCard: {
-    alignItems: 'center',
-    marginRight: 16,
-    width: 100,
-  },
-  staffPhoto: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: '#4F46E5',
-    backgroundColor: '#E5E7EB',
-  },
-  staffPhotoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#4F46E5',
+  heroFallback: {
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#E5E7EB',
   },
-  staffPhotoPlaceholderText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  heroFallbackText: {
+    fontSize: 50,
+    color: '#D1D5DB',
+  },
+  heroOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 0,
+  },
+  heroContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    paddingBottom: 24,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: '800',
     color: 'white',
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  heroMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  heroLocation: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.9,
+  },
+  heroRating: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+
+  // CONTENT
+  content: {
+    padding: 16,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1E1B4B',
+    marginBottom: 16,
+  },
+  cardText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#4C4B63',
+  },
+
+  // STAFF
+  staffScroll: {
+    flexDirection: 'row',
+  },
+  staffProfile: {
+    alignItems: 'center',
+    marginRight: 24,
+    width: 90,
+  },
+  staffImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: '#F0F0F0',
+    marginBottom: 10,
+  },
+  staffInitialBg: {
+    backgroundColor: '#8B5CF6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  staffInitial: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: '700',
   },
   staffName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginTop: 8,
+    fontWeight: '700',
+    color: '#1E1B4B',
     textAlign: 'center',
   },
-  staffSpecialty: {
+  staffTag: {
     fontSize: 12,
-    color: '#64748B',
-    marginTop: 2,
+    color: '#7C3AED',
     textAlign: 'center',
+    marginTop: 4,
+    fontWeight: '600',
   },
-  
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginTop: 8,
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  serviceCard: {
+
+  // SERVICES
+  serviceRow: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  serviceInfo: { 
-    flex: 1, 
-    marginRight: 10 
-  },
-  serviceName: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: '#334155' 
-  },
-  serviceDesc: { 
-    fontSize: 14, 
-    color: '#64748B', 
-    marginTop: 4 
-  },
-  serviceDuration: { 
-    fontSize: 12, 
-    color: '#94A3B8', 
-    marginTop: 8 
-  },
-  serviceAction: { 
-    alignItems: 'flex-end',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F5',
   },
-  servicePrice: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: '#1E293B' 
+  serviceRowLast: {
+    borderBottomWidth: 0,
   },
-  bookButton: {
-    backgroundColor: '#4F46E5',
+  serviceInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  serviceName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E1B4B',
+  },
+  serviceDesc: {
+    fontSize: 13,
+    color: '#6B6A82',
+    marginTop: 4,
+  },
+  serviceTime: {
+    fontSize: 12,
+    color: '#A7A6BB',
+    marginTop: 4,
+  },
+  serviceAction: {
+    alignItems: 'flex-end',
+  },
+  servicePrice: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1E1B4B',
+    marginBottom: 6,
+  },
+  ctaButton: {
+    backgroundColor: '#7C3AED',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  bookButtonText: { 
-    color: 'white', 
-    fontWeight: 'bold' 
+  ctaText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 13,
   },
-  noServiceContainer: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  noServiceText: { 
-    color: '#64748B',
+  emptyText: {
     fontSize: 14,
+    color: '#A7A6BB',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 
