@@ -36,22 +36,17 @@ const BarbershopDetailPage = () => {
     fetchDetails();
   }, [barbershopId]);
 
-  // ✅ FUNGSI UNTUK GET IMAGE URL YANG BENAR
   const getImageUrl = () => {
     if (!barbershop) return null;
     
-    // Jika ada main_image_url dari backend
     if (barbershop.main_image_url) {
-      // Cek apakah sudah full URL atau masih path
       if (barbershop.main_image_url.startsWith('http')) {
         return barbershop.main_image_url;
       } else {
-        // Gabungkan dengan base URL
         return `http://10.0.2.2:5000${barbershop.main_image_url}`;
       }
     }
     
-    // Fallback ke placeholder
     return `https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop`;
   };
 
@@ -94,7 +89,6 @@ const BarbershopDetailPage = () => {
         }}
       />
       
-      {/* Jika gambar error, tampilkan placeholder */}
       {imageError && (
         <View style={[styles.heroImage, styles.placeholderContainer]}>
           <Text style={styles.placeholderText}>📷</Text>
@@ -103,17 +97,34 @@ const BarbershopDetailPage = () => {
       )}
 
       <View style={styles.contentContainer}>
+        {/* Title & Address */}
         <Text style={styles.title}>{barbershop.name}</Text>
         <Text style={styles.address}>
           {barbershop.address}, {barbershop.city}
         </Text>
 
-        {/* Rating Section (bisa dikembangkan nanti) */}
+        {/* Rating Section */}
         <View style={styles.ratingContainer}>
           <Text style={styles.rating}>⭐ 4.8</Text>
           <Text style={styles.reviews}>(251 ulasan)</Text>
         </View>
 
+        {/* ✅ SECTION DESKRIPSI BARU */}
+        {barbershop.description && (
+          <View style={styles.descriptionSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderIcon}>ℹ️</Text>
+              <Text style={styles.sectionHeaderText}>Tentang Barbershop</Text>
+            </View>
+            <View style={styles.descriptionCard}>
+              <Text style={styles.descriptionText}>
+                {barbershop.description}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Services Section */}
         <Text style={styles.sectionTitle}>Pilih Layanan</Text>
         {barbershop.services && barbershop.services.length > 0 ? (
           barbershop.services.map(service => (
@@ -156,7 +167,10 @@ const BarbershopDetailPage = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
+  container: { 
+    flex: 1, 
+    backgroundColor: 'white' 
+  },
   loadingContainer: { 
     flex: 1, 
     justifyContent: 'center', 
@@ -208,7 +222,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
-  contentContainer: { padding: 20 },
+  contentContainer: { 
+    padding: 20 
+  },
   title: { 
     fontSize: 28, 
     fontWeight: 'bold', 
@@ -235,6 +251,38 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginLeft: 8,
   },
+  
+  // ✅ STYLES UNTUK DESKRIPSI
+  descriptionSection: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionHeaderIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  descriptionCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  descriptionText: {
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 24,
+  },
+  
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -254,7 +302,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
-  serviceInfo: { flex: 1, marginRight: 10 },
+  serviceInfo: { 
+    flex: 1, 
+    marginRight: 10 
+  },
   serviceName: { 
     fontSize: 16, 
     fontWeight: 'bold', 
