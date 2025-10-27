@@ -48,7 +48,7 @@ const HomePage = () => {
                 console.log('📍 Menggunakan lokasi pengguna untuk filter:', userLocation);
                 params.push(`latitude=${userLocation.latitude}`);
                 params.push(`longitude=${userLocation.longitude}`);
-                params.push(`max_distance=20`);
+                params.push(`max_distance=0.5`);    // 500 meter
             }
 
             if (params.length > 0) {
