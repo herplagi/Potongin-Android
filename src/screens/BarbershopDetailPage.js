@@ -1,4 +1,4 @@
-// src/screens/BarbershopDetailPage.js
+// src/screens/BarbershopDetailPage.js - UPDATED dengan Staff Section
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -50,6 +50,14 @@ const BarbershopDetailPage = () => {
     return `https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop`;
   };
 
+  const getStaffImageUrl = (picture) => {
+    if (!picture) return null;
+    if (picture.startsWith('http')) {
+      return picture;
+    }
+    return `http://10.0.2.2:5000${picture}`;
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -72,6 +80,9 @@ const BarbershopDetailPage = () => {
       </View>
     );
   }
+
+  // ✅ Filter hanya staff yang aktif
+  const activeStaff = barbershop.staff?.filter(s => s.is_active) || [];
 
   return (
     <ScrollView style={styles.container}>
@@ -109,7 +120,7 @@ const BarbershopDetailPage = () => {
           <Text style={styles.reviews}>(251 ulasan)</Text>
         </View>
 
-        {/* ✅ SECTION DESKRIPSI BARU */}
+        {/* Deskripsi */}
         {barbershop.description && (
           <View style={styles.descriptionSection}>
             <View style={styles.sectionHeader}>
@@ -121,6 +132,43 @@ const BarbershopDetailPage = () => {
                 {barbershop.description}
               </Text>
             </View>
+          </View>
+        )}
+
+        {/* ✅ NEW: Staff Section */}
+        {activeStaff.length > 0 && (
+          <View style={styles.staffSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderIcon}>👨‍💼</Text>
+              <Text style={styles.sectionHeaderText}>Tim Kapster Kami</Text>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.staffScrollView}
+            >
+              {activeStaff.map((staff) => (
+                <View key={staff.staff_id} style={styles.staffCard}>
+                  {staff.picture ? (
+                    <Image
+                      source={{ uri: getStaffImageUrl(staff.picture) }}
+                      style={styles.staffPhoto}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.staffPhotoPlaceholder}>
+                      <Text style={styles.staffPhotoPlaceholderText}>
+                        {staff.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.staffName}>{staff.name}</Text>
+                  {staff.specialty && (
+                    <Text style={styles.staffSpecialty}>{staff.specialty}</Text>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -252,7 +300,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   
-  // ✅ STYLES UNTUK DESKRIPSI
+  // Deskripsi Styles
   descriptionSection: {
     marginBottom: 24,
   },
@@ -281,6 +329,55 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#334155',
     lineHeight: 24,
+  },
+
+  // ✅ NEW: Staff Styles
+  staffSection: {
+    marginBottom: 24,
+  },
+  staffScrollView: {
+    marginTop: 12,
+  },
+  staffCard: {
+    alignItems: 'center',
+    marginRight: 16,
+    width: 100,
+  },
+  staffPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: '#4F46E5',
+    backgroundColor: '#E5E7EB',
+  },
+  staffPhotoPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4F46E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#E5E7EB',
+  },
+  staffPhotoPlaceholderText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  staffName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  staffSpecialty: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    textAlign: 'center',
   },
   
   sectionTitle: {
