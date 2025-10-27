@@ -1,4 +1,4 @@
-// src/screens/HistoryPage.js - UPDATED with Review Feature
+// src/screens/HistoryPage.js - GAYA KREATIF & IMMERSIVE
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -10,22 +10,21 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import api from '../services/api';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import api from '../services/api';
 
 const HistoryPage = () => {
   const navigation = useNavigation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [reviewStates, setReviewStates] = useState({}); // Track review status per booking
+  const [reviewStates, setReviewStates] = useState({});
 
   const fetchBookings = async () => {
     try {
       const response = await api.get('/bookings/my-bookings');
       setBookings(response.data);
-      
-      // Check review status untuk setiap booking yang completed
+
       const newReviewStates = {};
       for (const booking of response.data) {
         if (booking.status === 'completed') {
@@ -65,7 +64,6 @@ const HistoryPage = () => {
 
   const handleReviewPress = async (booking) => {
     try {
-      // Fetch service dan barbershop details
       const serviceResponse = await api.get(`/barbershops/detail/${booking.barbershop_id}`);
       const service = serviceResponse.data.services?.find(s => s.service_id === booking.service_id);
       
@@ -90,31 +88,11 @@ const HistoryPage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending_payment':
-        return '#EAB308';
-      case 'confirmed':
-        return '#3B82F6';
-      case 'completed':
-        return '#10B981';
-      case 'cancelled':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
-  const getPaymentStatusColor = (status) => {
-    switch (status) {
-      case 'paid':
-        return '#10B981';
-      case 'pending':
-        return '#EAB308';
-      case 'failed':
-        return '#EF4444';
-      case 'expired':
-        return '#EF4444';
-      default:
-        return '#6B7280';
+      case 'pending_payment': return '#F59E0B'; // amber
+      case 'confirmed': return '#3B82F6';       // blue
+      case 'completed': return '#10B981';       // emerald
+      case 'cancelled': return '#EF4444';       // red
+      default: return '#9CA3AF';
     }
   };
 
@@ -124,27 +102,27 @@ const HistoryPage = () => {
     const hasReview = reviewState?.hasReview;
 
     return (
-      <View style={styles.bookingCard}>
+      <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.serviceName}>{item.Service?.name || 'Layanan'}</Text>
+          <View>
+            <Text style={styles.serviceName}>{item.Service?.name || 'Layanan'}</Text>
+            <Text style={styles.barbershopName}>
+              {item.Barbershop?.name || 'Barbershop'}
+            </Text>
+          </View>
           <Text style={styles.price}>
-            Rp {Number(item.total_price).toLocaleString('id-ID')}
+            Rp{Number(item.total_price).toLocaleString('id-ID')}
           </Text>
         </View>
 
         <View style={styles.cardBody}>
-          <Text style={styles.barbershopName}>
-            {item.Barbershop?.name || 'Barbershop'}
-          </Text>
           <Text style={styles.dateTime}>
             {new Date(item.booking_time).toLocaleDateString('id-ID', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
+              weekday: 'short',
               day: 'numeric',
+              month: 'short',
             })}
-          </Text>
-          <Text style={styles.time}>
+            {' • '}
             {new Date(item.booking_time).toLocaleTimeString('id-ID', {
               hour: '2-digit',
               minute: '2-digit',
@@ -156,21 +134,21 @@ const HistoryPage = () => {
           <Text style={styles.bookingId}>ID: {item.booking_id}</Text>
         </View>
 
-        <View style={styles.cardFooter}>
-          <View style={styles.statusContainer}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-              <Text style={styles.statusText}>
-                {item.status.replace('_', ' ').toUpperCase()}
-              </Text>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: getPaymentStatusColor(item.payment_status) }]}>
-              <Text style={styles.statusText}>
-                {item.payment_status === 'paid' ? '✔ DIBAYAR' : 'BELUM BAYAR'}
-              </Text>
-            </View>
+        <View style={styles.statusRow}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusText}>
+              {item.status.replace(/_/g, ' ')}
+            </Text>
           </View>
+          {item.payment_status === 'paid' && (
+            <View style={[styles.statusBadge, { backgroundColor: '#10B981' }]}>
+              <Text style={styles.statusText}>Dibayar</Text>
+            </View>
+          )}
+        </View>
 
-          {/* TOMBOL REVIEW - Tampil jika booking completed dan bisa review */}
+        {/* Action Buttons */}
+        <View style={styles.actionRow}>
           {item.status === 'completed' && canReview && !hasReview && (
             <TouchableOpacity
               style={styles.reviewButton}
@@ -180,38 +158,29 @@ const HistoryPage = () => {
             </TouchableOpacity>
           )}
 
-          {/* Pesan jika sudah ada review */}
           {hasReview && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                ✅ Anda sudah memberi review untuk booking ini
-              </Text>
+            <View style={styles.reviewedTag}>
+              <Text style={styles.reviewedText}>✅ Sudah Direview</Text>
             </View>
           )}
 
-          {/* Tombol bayar jika pending payment */}
-          {item.payment_status === 'pending' && 
-           item.status === 'pending_payment' && 
-           item.payment_url && (
+          {item.payment_status === 'pending' && item.status === 'pending_payment' && item.payment_url && (
             <TouchableOpacity
               style={styles.payButton}
-              onPress={() => {
+              onPress={() =>
                 navigation.navigate('PaymentWebView', {
                   paymentUrl: item.payment_url,
                   bookingId: item.booking_id,
-                });
-              }}
+                })
+              }
             >
               <Text style={styles.payButtonText}>💳 Bayar Sekarang</Text>
             </TouchableOpacity>
           )}
 
-          {/* Pesan untuk payment expired */}
           {item.payment_status === 'expired' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                ⏰ Pembayaran sudah kadaluarsa. Silakan buat booking baru.
-              </Text>
+            <View style={styles.expiredTag}>
+              <Text style={styles.expiredText}>⏰ Kadaluarsa</Text>
             </View>
           )}
         </View>
@@ -221,19 +190,19 @@ const HistoryPage = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={styles.loadingText}>Memuat riwayat booking...</Text>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={styles.loadingText}>Menyiapkan riwayat Anda...</Text>
       </View>
     );
   }
 
   if (bookings.length === 0) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>📋 Belum ada riwayat booking</Text>
-        <Text style={styles.emptySubtext}>
-          Booking Anda akan muncul di sini
+      <View style={styles.centered}>
+        <Text style={styles.emptyTitle}>📋 Belum Ada Riwayat</Text>
+        <Text style={styles.emptySubtitle}>
+          Booking Anda akan muncul di sini setelah Anda melakukan pemesanan.
         </Text>
       </View>
     );
@@ -244,10 +213,10 @@ const HistoryPage = () => {
       <FlatList
         data={bookings}
         renderItem={renderBookingItem}
-        keyExtractor={item => item.booking_id}
-        contentContainerStyle={styles.listContainer}
+        keyExtractor={(item) => item.booking_id}
+        contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8B5CF6" />
         }
       />
     </View>
@@ -255,156 +224,161 @@ const HistoryPage = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#F1F5F9' 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  centerContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: '#1F2937',
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#6B7280',
+    padding: 24,
   },
   loadingText: {
     marginTop: 12,
+    fontSize: 15,
+    color: '#7C3AED',
+    fontWeight: '500',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E1B4B',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B6A82',
+    textAlign: 'center',
+    lineHeight: 20,
   },
-  listContainer: { 
-    padding: 16 
-  },
-  bookingCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
+
+  list: {
     padding: 16,
-    marginBottom: 16,
-    elevation: 3,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    alignItems: 'flex-start',
+    marginBottom: 14,
   },
   serviceName: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: '800',
+    color: '#1E1B4B',
     flex: 1,
+    marginRight: 12,
+  },
+  barbershopName: {
+    fontSize: 14,
+    color: '#6B6A82',
+    marginTop: 4,
   },
   price: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4F46E5',
+    fontWeight: '800',
+    color: '#1E1B4B',
+    textAlign: 'right',
   },
   cardBody: {
-    marginBottom: 12,
-  },
-  barbershopName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 4,
+    marginBottom: 14,
   },
   dateTime: {
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  time: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
+    color: '#4C4B63',
+    marginBottom: 6,
   },
   staff: {
     fontSize: 13,
-    color: '#9CA3AF',
-    marginBottom: 4,
+    color: '#7C3AED',
+    fontWeight: '600',
+    marginBottom: 6,
   },
   bookingId: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: '#A7A6BB',
     fontFamily: 'monospace',
-    marginTop: 4,
   },
-  cardFooter: {
-    gap: 12,
-  },
-  statusContainer: {
+  statusRow: {
     flexDirection: 'row',
-    gap: 8,
     flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 12,
   },
   statusText: {
     color: 'white',
-    fontSize: 11,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
   },
   reviewButton: {
-    backgroundColor: '#F59E0B',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    backgroundColor: '#7C3AED',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   reviewButtonText: {
     color: 'white',
+    fontWeight: '700',
     fontSize: 14,
-    fontWeight: 'bold',
+  },
+  reviewedTag: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  reviewedText: {
+    color: '#065F46',
+    fontWeight: '600',
+    fontSize: 14,
   },
   payButton: {
     backgroundColor: '#10B981',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   payButtonText: {
     color: 'white',
+    fontWeight: '700',
     fontSize: 14,
-    fontWeight: 'bold',
   },
-  infoBox: {
-    backgroundColor: '#FEF3C7',
-    padding: 12,
-    borderRadius: 8,
+  expiredTag: {
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#FECACA',
   },
-  infoText: {
-    fontSize: 12,
-    color: '#92400E',
-    textAlign: 'center',
+  expiredText: {
+    color: '#B91C1C',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 
