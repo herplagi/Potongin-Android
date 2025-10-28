@@ -20,19 +20,33 @@ const BarbershopDetailPage = () => {
   const [barbershop, setBarbershop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [reviewStats, setReviewStats] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+  });
 
   useEffect(() => {
-    const fetchDetails = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get(`/barbershops/detail/${barbershopId}`);
-        setBarbershop(response.data);
+        // Fetch detail barbershop
+        const detailRes = await api.get(`/barbershops/detail/${barbershopId}`);
+        setBarbershop(detailRes.data);
+
+        // Fetch review stats
+        const reviewRes = await api.get(
+          `/reviews/public/barbershop/${barbershopId}`,
+        );
+        setReviewStats(
+          reviewRes.data.stats || { averageRating: 0, totalReviews: 0 },
+        );
       } catch (error) {
-        console.error('Gagal memuat detail:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchDetails();
+
+    fetchData();
   }, [barbershopId]);
 
   const getImageUrl = () => {
@@ -45,9 +59,11 @@ const BarbershopDetailPage = () => {
     return 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop';
   };
 
-  const getStaffImageUrl = (picture) => {
+  const getStaffImageUrl = picture => {
     if (!picture) return null;
-    return picture.startsWith('http') ? picture : `http://10.0.2.2:5000${picture}`;
+    return picture.startsWith('http')
+      ? picture
+      : `http://10.0.2.2:5000${picture}`;
   };
 
   if (loading) {
@@ -63,7 +79,10 @@ const BarbershopDetailPage = () => {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Barbershop tidak ditemukan.</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Text style={styles.backButtonText}>Kembali</Text>
         </TouchableOpacity>
       </View>
@@ -93,7 +112,10 @@ const BarbershopDetailPage = () => {
           <Text style={styles.heroTitle}>{barbershop.name}</Text>
           <View style={styles.heroMeta}>
             <Text style={styles.heroLocation}>📍 {barbershop.city}</Text>
-            <Text style={styles.heroRating}>⭐ 4.8 (251)</Text>
+            <Text style={styles.heroRating}>
+              ⭐ {reviewStats.averageRating || '0.0'} (
+              {reviewStats.totalReviews || 0})
+            </Text>
           </View>
         </View>
       </View>
@@ -111,8 +133,12 @@ const BarbershopDetailPage = () => {
         {activeStaff.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Meet the Artists</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.staffScroll}>
-              {activeStaff.map((staff) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.staffScroll}
+            >
+              {activeStaff.map(staff => (
                 <View key={staff.staff_id} style={styles.staffProfile}>
                   {staff.picture ? (
                     <Image
@@ -141,12 +167,14 @@ const BarbershopDetailPage = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Layanan Unggulan</Text>
           {barbershop.services && barbershop.services.length > 0 ? (
-            barbershop.services.map((service) => (
+            barbershop.services.map(service => (
               <View key={service.service_id} style={styles.serviceRow}>
                 <View style={styles.serviceInfo}>
                   <Text style={styles.serviceName}>{service.name}</Text>
                   <Text style={styles.serviceDesc}>{service.description}</Text>
-                  <Text style={styles.serviceTime}>⏱️ {service.duration_minutes} menit</Text>
+                  <Text style={styles.serviceTime}>
+                    ⏱️ {service.duration_minutes} menit
+                  </Text>
                 </View>
                 <View style={styles.serviceAction}>
                   <Text style={styles.servicePrice}>
