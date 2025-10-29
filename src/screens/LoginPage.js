@@ -1,5 +1,4 @@
-// src/screens/LoginPage.js
-
+// src/screens/LoginPage.js - GAYA KREATIF & IMMERSIVE
 import React, { useState } from 'react';
 import {
   View,
@@ -24,7 +23,6 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigation = useNavigation();
 
-  // Validasi input email & password
   const validateInputs = () => {
     if (!email.trim()) {
       Alert.alert('Validasi', 'Email tidak boleh kosong');
@@ -50,34 +48,22 @@ const LoginPage = () => {
     return true;
   };
 
-  // Fungsi handle login
   const handleLogin = async () => {
     if (!validateInputs()) return;
 
     setLoading(true);
-    console.log('Attempting login with:', { email });
-
     try {
       await login(email, password);
-      console.log('Login successful');
-      // Navigasi akan di-handle otomatis oleh AppNavigator
     } catch (error) {
       console.error('Login error:', error);
-
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-
       if (error.response) {
-        // Jika server mengembalikan respon error
-        errorMessage =
-          error.response.data?.message ||
-          'Login gagal. Periksa email dan password Anda.';
+        errorMessage = error.response.data?.message || 'Login gagal. Periksa email dan password Anda.';
       } else if (error.message === 'Network Error') {
-        errorMessage =
-          'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
+        errorMessage = 'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Koneksi timeout. Silakan coba lagi.';
       }
-
       Alert.alert('Login Gagal', errorMessage);
     } finally {
       setLoading(false);
@@ -96,12 +82,11 @@ const LoginPage = () => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Selamat Datang</Text>
-          <Text style={styles.subtitle}>Login untuk melanjutkan</Text>
+          <Text style={styles.subtitle}>Masuk untuk menemukan gaya terbaikmu</Text>
         </View>
 
-        {/* Form Login */}
-        <View style={styles.formContainer}>
-          {/* Input Email */}
+        {/* Form */}
+        <View style={styles.card}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -112,39 +97,36 @@ const LoginPage = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#A7A6BB"
               editable={!loading}
             />
           </View>
 
-          {/* Input Password */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="Masukkan password"
+              placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#A7A6BB"
               editable={!loading}
             />
           </View>
 
-          {/* Tombol Login */}
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="white" size="small" />
             ) : (
-              <Text style={styles.buttonText}>Login</Text>
+              <Text style={styles.buttonText}>Masuk</Text>
             )}
           </TouchableOpacity>
 
-          {/* Link ke halaman register */}
           <TouchableOpacity
             onPress={() => navigation.navigate('Register')}
             disabled={loading}
@@ -152,7 +134,7 @@ const LoginPage = () => {
           >
             <Text style={styles.linkText}>
               Belum punya akun?{' '}
-              <Text style={styles.linkTextBold}>Daftar di sini</Text>
+              <Text style={styles.linkTextBold}>Daftar sekarang</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -164,7 +146,7 @@ const LoginPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -177,63 +159,65 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: '800',
+    color: '#1E1B4B',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748B',
+    color: '#6B6A82',
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  formContainer: {
+  card: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 5,
   },
   inputGroup: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#1E1B4B',
+    marginBottom: 10,
   },
   input: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 14,
     fontSize: 16,
+    color: '#1E1B4B',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    color: '#1E293B',
+    borderColor: '#E5E7EB',
   },
   button: {
-    backgroundColor: '#4F46E5',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#7C3AED',
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#4F46E5',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: '#C4B5FD',
     shadowOpacity: 0,
     elevation: 0,
   },
   buttonText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontWeight: '700',
     fontSize: 16,
   },
   linkContainer: {
@@ -241,12 +225,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: '#64748B',
+    color: '#6B6A82',
     fontSize: 14,
   },
   linkTextBold: {
-    color: '#4F46E5',
-    fontWeight: 'bold',
+    color: '#7C3AED',
+    fontWeight: '700',
   },
 });
 
