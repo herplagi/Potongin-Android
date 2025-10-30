@@ -1,6 +1,13 @@
 // src/screens/AccountPage.js - GAYA KREATIF & IMMERSIVE
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -9,17 +16,13 @@ const AccountPage = () => {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert(
-      "Keluar",
-      "Apakah Anda yakin ingin keluar?",
-      [
-        { text: "Batal", style: "cancel" },
-        { text: "Keluar", style: "destructive", onPress: () => logout() }
-      ]
-    );
+    Alert.alert('Keluar', 'Apakah Anda yakin ingin keluar?', [
+      { text: 'Batal', style: 'cancel' },
+      { text: 'Keluar', style: 'destructive', onPress: () => logout() },
+    ]);
   };
 
-  const navigateTo = (screenName) => {
+  const navigateTo = screenName => {
     navigation.navigate(screenName);
   };
 
@@ -33,7 +36,9 @@ const AccountPage = () => {
           </Text>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{user?.name || 'Nama Tidak Tersedia'}</Text>
+          <Text style={styles.profileName}>
+            {user?.name || 'Nama Tidak Tersedia'}
+          </Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
           <Text style={styles.profilePhone}>
             {user?.phone_number || 'Nomor telepon tidak tersedia'}
@@ -41,7 +46,9 @@ const AccountPage = () => {
         </View>
         <TouchableOpacity
           style={styles.editButton}
-          onPress={() => Alert.alert("Info", "Fitur edit profil akan segera hadir!")}
+          onPress={() =>
+            Alert.alert('Info', 'Fitur edit profil akan segera hadir!')
+          }
         >
           <Text style={styles.editButtonText}>Edit Profil</Text>
         </TouchableOpacity>
@@ -50,16 +57,59 @@ const AccountPage = () => {
       {/* Menu Items */}
       <View style={styles.menuSection}>
         {[
-          { icon: '📋', title: 'Riwayat Booking', subtitle: 'Lihat semua pesanan Anda', screen: 'MyBookings' },
-          { icon: '⭐', title: 'Ulasan Saya', subtitle: 'Lihat ulasan yang telah Anda berikan', screen: 'MyReviews' },
-          { icon: '⚙️', title: 'Pengaturan Akun', subtitle: 'Ubah password, notifikasi, dll', screen: 'Settings' },
-          { icon: '❓', title: 'Pusat Bantuan', subtitle: 'FAQ & Hubungi Admin', screen: 'HelpCenter' },
-          { icon: 'ℹ️', title: 'Tentang Aplikasi', subtitle: 'Versi, Kebijakan Privasi, Syarat & Ketentuan', screen: 'AboutApp' },
+          {
+            icon: '📋',
+            title: 'Riwayat Booking',
+            subtitle: 'Lihat semua pesanan Anda',
+            screen: 'MyBookings',
+          },
+          {
+            icon: '⭐',
+            title: 'Ulasan Saya',
+            subtitle: 'Lihat ulasan yang telah Anda berikan',
+            screen: 'MyReviews',
+          },
+          {
+            icon: '⚙️',
+            title: 'Pengaturan Akun',
+            subtitle: 'Ubah password, notifikasi, dll',
+            screen: 'Settings',
+          },
+          {
+            icon: '❓',
+            title: 'Pusat Bantuan',
+            subtitle: 'FAQ & Hubungi Admin',
+            screen: 'HelpCenter',
+          },
+          {
+            icon: 'ℹ️',
+            title: 'Tentang Aplikasi',
+            subtitle: 'Versi, Kebijakan Privasi, Syarat & Ketentuan',
+            screen: 'AboutApp',
+          },
+          {
+            icon: '👤',
+            title: 'Edit Profil',
+            subtitle: 'Ubah nama dan nomor telepon',
+            screen: 'EditProfile',
+          },
+          {
+            icon: '🔐',
+            title: 'Ubah Password',
+            subtitle: 'Update password untuk keamanan',
+            screen: 'ChangePassword',
+          },
         ].map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.menuItem}
-            onPress={() => navigateTo(item.screen)}
+            onPress={() => {
+              if (item.onPress) {
+                item.onPress();
+              } else if (item.screen) {
+                navigateTo(item.screen);
+              }
+            }}
           >
             <View style={styles.menuIcon}>
               <Text style={styles.iconText}>{item.icon}</Text>

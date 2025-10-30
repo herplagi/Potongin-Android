@@ -13,6 +13,8 @@ import PaymentWebViewScreen from '../screens/PaymentWebViewScreen';
 import { View, ActivityIndicator } from 'react-native';
 import MainTabNavigator from './MainTabNavigator';
 import ReviewScreen from '../screens/ReviewScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -60,6 +62,24 @@ const AppStack = () => (
       options={{
         title: 'Beri Review',
         headerStyle: { backgroundColor: '#4F46E5' },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{
+        title: 'Edit Profil',
+        headerStyle: { backgroundColor: '#7C3AED' },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen
+      name="ChangePassword"
+      component={ChangePasswordScreen}
+      options={{
+        title: 'Ubah Password',
+        headerStyle: { backgroundColor: '#7C3AED' },
         headerTintColor: '#fff',
       }}
     />
