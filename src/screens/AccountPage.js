@@ -44,48 +44,16 @@ const AccountPage = () => {
             {user?.phone_number || 'Nomor telepon tidak tersedia'}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() =>
-            Alert.alert('Info', 'Fitur edit profil akan segera hadir!')
-          }
-        >
-          <Text style={styles.editButtonText}>Edit Profil</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Menu Items */}
       <View style={styles.menuSection}>
         {[
           {
-            icon: '📋',
-            title: 'Riwayat Booking',
-            subtitle: 'Lihat semua pesanan Anda',
-            screen: 'MyBookings',
-          },
-          {
             icon: '⭐',
             title: 'Ulasan Saya',
             subtitle: 'Lihat ulasan yang telah Anda berikan',
             screen: 'MyReviews',
-          },
-          {
-            icon: '⚙️',
-            title: 'Pengaturan Akun',
-            subtitle: 'Ubah password, notifikasi, dll',
-            screen: 'Settings',
-          },
-          {
-            icon: '❓',
-            title: 'Pusat Bantuan',
-            subtitle: 'FAQ & Hubungi Admin',
-            screen: 'HelpCenter',
-          },
-          {
-            icon: 'ℹ️',
-            title: 'Tentang Aplikasi',
-            subtitle: 'Versi, Kebijakan Privasi, Syarat & Ketentuan',
-            screen: 'AboutApp',
           },
           {
             icon: '👤',
