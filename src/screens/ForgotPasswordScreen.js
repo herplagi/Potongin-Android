@@ -1,4 +1,4 @@
-// src/screens/LoginPage.js - GAYA KREATIF & IMMERSIVE
+// src/screens/ForgotPasswordScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -12,18 +12,15 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { forgotPassword } from '../services/authService';
 
-const LoginPage = () => {
+const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth();
   const navigation = useNavigation();
 
-  const validateInputs = () => {
+  const validateEmail = () => {
     if (!email.trim()) {
       Alert.alert('Validasi', 'Email tidak boleh kosong');
       return false;
@@ -35,36 +32,34 @@ const LoginPage = () => {
       return false;
     }
 
-    if (!password) {
-      Alert.alert('Validasi', 'Password tidak boleh kosong');
-      return false;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Validasi', 'Password minimal 6 karakter');
-      return false;
-    }
-
     return true;
   };
 
-  const handleLogin = async () => {
-    if (!validateInputs()) return;
+  const handleSubmit = async () => {
+    if (!validateEmail()) return;
 
     setLoading(true);
     try {
-      await login(email, password);
+      await forgotPassword(email);
+      Alert.alert(
+        'Berhasil',
+        'Jika email terdaftar, link reset password telah dikirim. Silakan cek inbox atau folder spam.',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Login'),
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Forgot password error:', error);
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-      if (error.response) {
-        errorMessage = error.response.data?.message || 'Login gagal. Periksa email dan password Anda.';
-      } else if (error.message === 'Network Error') {
+      if (error.message === 'Network Error') {
         errorMessage = 'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Koneksi timeout. Silakan coba lagi.';
       }
-      Alert.alert('Login Gagal', errorMessage);
+      Alert.alert('Gagal', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -81,11 +76,13 @@ const LoginPage = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Selamat Datang</Text>
-          <Text style={styles.subtitle}>Masuk untuk menemukan gaya terbaikmu</Text>
+          <Text style={styles.title}>Lupa Password?</Text>
+          <Text style={styles.subtitle}>
+            Masukkan email untuk menerima link reset password
+          </Text>
         </View>
 
-        {/* Form */}
+        {/* Form Card */}
         <View style={styles.card}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
@@ -102,48 +99,24 @@ const LoginPage = () => {
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#A7A6BB"
-              editable={!loading}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
-            disabled={loading}
-            style={styles.forgotPasswordContainer}
-          >
-            <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
+            onPress={handleSubmit}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="white" size="small" />
             ) : (
-              <Text style={styles.buttonText}>Masuk</Text>
+              <Text style={styles.buttonText}>Kirim Link Reset</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
+            onPress={() => navigation.navigate('Login')}
             disabled={loading}
             style={styles.linkContainer}
           >
-            <Text style={styles.linkText}>
-              Belum punya akun?{' '}
-              <Text style={styles.linkTextBold}>Daftar sekarang</Text>
-            </Text>
+            <Text style={styles.linkText}>Kembali ke Login</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -233,22 +206,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: '#6B6A82',
-    fontSize: 14,
-  },
-  linkTextBold: {
     color: '#7C3AED',
     fontWeight: '700',
-  },
-  forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
-  },
-  forgotPasswordText: {
-    color: '#7C3AED',
     fontSize: 14,
-    fontWeight: '600',
   },
 });
 
-export default LoginPage;
+export default ForgotPasswordScreen;
