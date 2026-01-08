@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../screens/LoginPage';
 import RegisterPage from '../screens/RegisterPage';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import HomePage from '../screens/HomePage';
 import BarbershopDetailPage from '../screens/BarbershopDetailPage';
 import BookingPage from '../screens/BookingPage';
@@ -24,6 +26,8 @@ const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="Login" component={LoginPage} />
     <Stack.Screen name="Register" component={RegisterPage} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
   </Stack.Navigator>
 );
 
