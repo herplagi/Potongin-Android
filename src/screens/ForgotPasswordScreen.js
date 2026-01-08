@@ -43,7 +43,7 @@ const ForgotPasswordScreen = () => {
       await forgotPassword(email);
       Alert.alert(
         'Berhasil',
-        'Link reset password telah dikirim ke email Anda. Silakan cek inbox atau folder spam.',
+        'Jika email terdaftar, link reset password telah dikirim. Silakan cek inbox atau folder spam.',
         [
           {
             text: 'OK',
@@ -54,9 +54,7 @@ const ForgotPasswordScreen = () => {
     } catch (error) {
       console.error('Forgot password error:', error);
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
-      if (error.response) {
-        errorMessage = error.response.data?.message || 'Email tidak terdaftar dalam sistem.';
-      } else if (error.message === 'Network Error') {
+      if (error.message === 'Network Error') {
         errorMessage = 'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Koneksi timeout. Silakan coba lagi.';

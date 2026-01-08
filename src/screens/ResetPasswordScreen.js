@@ -78,9 +78,9 @@ const ResetPasswordScreen = () => {
       console.error('Reset password error:', error);
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
       if (error.response) {
-        errorMessage = error.response.data?.message || 'Token tidak valid atau sudah kadaluarsa. Silakan minta link reset password baru.';
+        errorMessage = error.response.data?.message || 'Token tidak valid atau sudah kadaluarsa.';
       } else if (error.message === 'Network Error') {
-        errorMessage = 'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
+        errorMessage = 'Tidak dapat terhubung ke server.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Koneksi timeout. Silakan coba lagi.';
       }
