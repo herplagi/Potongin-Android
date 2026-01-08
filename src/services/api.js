@@ -3,9 +3,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Ganti dengan IP komputer Anda atau gunakan ngrok untuk testing
-// Untuk emulator Android: 10.0.2.2
-// Untuk device fisik: gunakan IP lokal komputer (misal: 192.168.1.100)
+
 const api = axios.create({
   baseURL: 'http://10.0.2.2:5000/api',
   timeout: 10000, // 10 detik timeout

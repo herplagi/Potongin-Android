@@ -15,6 +15,7 @@ import MainTabNavigator from './MainTabNavigator';
 import ReviewScreen from '../screens/ReviewScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import MyReviewsScreen from '../screens/MyReviewsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -79,6 +80,15 @@ const AppStack = () => (
       component={ChangePasswordScreen}
       options={{
         title: 'Ubah Password',
+        headerStyle: { backgroundColor: '#7C3AED' },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen
+      name="MyReviews"
+      component={MyReviewsScreen}
+      options={{
+        title: 'Ulasan Saya',
         headerStyle: { backgroundColor: '#7C3AED' },
         headerTintColor: '#fff',
       }}
