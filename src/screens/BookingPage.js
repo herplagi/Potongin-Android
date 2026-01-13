@@ -1,5 +1,5 @@
 // src/screens/BookingPage.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
-import api from '../services/api';
+import { checkAvailability, createBooking } from '../services/bookingService';
 
 // --- TAMBAHKAN FUNGSI PEMBANTU ---
 const generateTimeSlots = (start, end, intervalMinutes) => {
@@ -78,7 +78,7 @@ const BookingPage = () => {
   // --------------------------------------------
 
   // Fungsi untuk mengecek ketersediaan staff dan waktu penuh
-  const fetchAvailability = async (date, time = null) => {
+  const fetchAvailability = useCallback(async (date, time = null) => {
     if (!date) {
       setUnavailableStaffIds([]);
       setFullyBookedTimes([]);
@@ -95,22 +95,22 @@ const BookingPage = () => {
         params.time = time;
       }
 
-      const response = await api.get(`/bookings/check-availability`, { params });
+      const availabilityData = await checkAvailability(params);
 
       if (time) {
         console.log('🔍 Mengecek ketersediaan staff untuk waktu:', time);
-        setUnavailableStaffIds(response.data.unavailable_staff_ids || []);
-        if (selectedStaffId && (response.data.unavailable_staff_ids || []).includes(selectedStaffId)) {
+        setUnavailableStaffIds(availabilityData.unavailable_staff_ids || []);
+        if (selectedStaffId && (availabilityData.unavailable_staff_ids || []).includes(selectedStaffId)) {
              setSelectedStaffId(null);
         }
       } else {
         console.log('🔍 Mengecek waktu penuh untuk tanggal:', date);
-        setFullyBookedTimes(response.data.fully_booked_times || []);
+        setFullyBookedTimes(availabilityData.fully_booked_times || []);
         setUnavailableStaffIds([]);
         setSelectedStaffId(null);
       }
     } catch (error) {
-      console.error('Gagal cek ketersediaan:', error);
+      console.error('❌ Gagal cek ketersediaan:', error);
       if (time) {
          setUnavailableStaffIds([]);
       } else {
@@ -119,12 +119,12 @@ const BookingPage = () => {
     } finally {
       setLoadingAvailability(false);
     }
-  };
+  }, [barbershop.barbershop_id, selectedStaffId]);
 
   // useEffect untuk memanggil fetchAvailability saat selectedDate berubah
   useEffect(() => {
     fetchAvailability(selectedDate, null);
-  }, [selectedDate]);
+  }, [selectedDate, fetchAvailability]);
 
   // useEffect untuk memanggil fetchAvailability saat selectedTime berubah
   useEffect(() => {
@@ -134,7 +134,7 @@ const BookingPage = () => {
         setUnavailableStaffIds([]);
         setSelectedStaffId(null);
     }
-  }, [selectedDate, selectedTime]);
+  }, [selectedDate, selectedTime, fetchAvailability]);
 
   // Memoized list of available times based on barbershop hours
   const availableTimes = useMemo(() => {
@@ -199,10 +199,10 @@ const BookingPage = () => {
 
       console.log('📤 Sending booking data:', bookingData);
 
-      const response = await api.post('/bookings', bookingData);
-      console.log('📥 Booking response:', response.data);
+      const responseData = await createBooking(bookingData);
+      console.log('📥 Booking response:', responseData);
 
-      const { booking, payment } = response.data;
+      const { booking, payment } = responseData;
 
       if (!payment || !payment.redirect_url) {
         Alert.alert('Error', 'URL pembayaran tidak tersedia');
@@ -234,14 +234,8 @@ const BookingPage = () => {
       );
     } catch (error) {
       console.error('❌ Booking error:', error);
-      console.error('Error response:', error.response?.data);
 
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Terjadi kesalahan saat membuat booking.';
-
-      Alert.alert('❌ Booking Gagal', errorMessage);
+      Alert.alert('❌ Booking Gagal', error.message || 'Terjadi kesalahan saat membuat booking.');
     } finally {
       setIsSubmitting(false);
     }

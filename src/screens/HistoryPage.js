@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import api from '../services/api';
+import { getMyBookings } from '../services/bookingService';
 
 const HistoryPage = () => {
   const navigation = useNavigation();
@@ -29,35 +30,15 @@ const HistoryPage = () => {
   useFocusEffect(
     useCallback(() => {
       fetchBookings();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
   useEffect(() => {
     filterBookings(activeFilter);
-  }, [bookings, activeFilter]);
+  }, [bookings, activeFilter, filterBookings]);
 
-  const fetchBookings = async () => {
-    try {
-      const response = await api.get('/bookings/my-bookings');
-      setBookings(response.data);
-
-      const newReviewStates = {};
-      for (const booking of response.data) {
-        if (booking.status === 'completed') {
-          await checkIfCanReview(booking.booking_id, newReviewStates);
-        }
-      }
-      setReviewStates(newReviewStates);
-    } catch (error) {
-      console.error('Gagal memuat booking:', error);
-      Alert.alert('Error', 'Gagal memuat riwayat booking');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const checkIfCanReview = async (bookingId, stateObj) => {
+  const checkIfCanReview = useCallback(async (bookingId, stateObj) => {
     try {
       const response = await api.get(`/reviews/can-review/${bookingId}`);
       stateObj[bookingId] = response.data;
@@ -65,9 +46,9 @@ const HistoryPage = () => {
       console.error('Error checking review status:', error);
       stateObj[bookingId] = { canReview: false };
     }
-  };
+  }, []);
 
-  const filterBookings = (filter) => {
+  const filterBookings = useCallback((filter) => {
     let filtered = [...bookings];
     
     if (filter === 'ongoing') {
@@ -86,7 +67,28 @@ const HistoryPage = () => {
     filtered.sort((a, b) => new Date(b.booking_time) - new Date(a.booking_time));
     
     setFilteredBookings(filtered);
-  };
+  }, [bookings]);
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      const bookingsData = await getMyBookings();
+      setBookings(bookingsData);
+
+      const newReviewStates = {};
+      for (const booking of bookingsData) {
+        if (booking.status === 'completed') {
+          await checkIfCanReview(booking.booking_id, newReviewStates);
+        }
+      }
+      setReviewStates(newReviewStates);
+    } catch (error) {
+      console.error('❌ Gagal memuat booking:', error);
+      Alert.alert('Error', error.message || 'Gagal memuat riwayat booking');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [checkIfCanReview]);
 
   const onRefresh = () => {
     setRefreshing(true);

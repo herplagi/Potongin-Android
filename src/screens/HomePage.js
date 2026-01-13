@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
+import { getUpcomingBooking } from '../services/bookingService';
 import BarbershopCard from '../components/BarbershopCard';
 import ServiceCategories from '../components/ServiceCategories';
 import UpcomingScheduleCard from '../components/UpcomingScheduleCard';
@@ -96,13 +97,23 @@ const HomePage = () => {
 
   const fetchUpcomingBooking = useCallback(async () => {
     try {
-      const response = await api.get('/bookings/upcoming');
-      if (response.data && response.data.length > 0) {
-        setUpcomingBooking(response.data[0]);
+      const booking = await getUpcomingBooking();
+      if (booking) {
+        setUpcomingBooking(booking);
+        console.log('✅ Upcoming booking berhasil dimuat');
+      } else {
+        console.log('ℹ️ Tidak ada upcoming booking');
+        setUpcomingBooking(null);
       }
     } catch (error) {
-      // Silently fail - upcoming booking is optional
-      console.log('No upcoming bookings found');
+      // Log error tapi tidak menampilkan alert karena upcoming booking adalah optional
+      console.error('⚠️ Error saat mengambil upcoming booking:', error.message);
+      setUpcomingBooking(null);
+      
+      // Jika error adalah masalah autentikasi, tampilkan peringatan
+      if (error.message.includes('login')) {
+        Alert.alert('Sesi Berakhir', error.message);
+      }
     }
   }, []);
 
