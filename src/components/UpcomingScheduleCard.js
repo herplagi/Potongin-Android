@@ -13,7 +13,7 @@ const UpcomingScheduleCard = ({ booking, onDetailPress }) => {
   const formatDateTime = (dateStr) => {
     const date = new Date(dateStr);
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Oct', 'Nov', 'Des'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
     
     return {
       day: days[date.getDay()],

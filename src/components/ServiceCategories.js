@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: COLORS.primary + '20',
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   categoryText: {
     fontSize: 12,

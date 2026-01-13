@@ -146,7 +146,7 @@ const HomePage = () => {
       {upcomingBooking && (
         <UpcomingScheduleCard 
           booking={upcomingBooking}
-          onDetailPress={() => navigation.navigate('Riwayat')}
+          onDetailPress={() => navigation.navigate('Main', { screen: 'Pesanan' })}
         />
       )}
 
@@ -205,14 +205,16 @@ const HomePage = () => {
         data={barbershops}
         keyExtractor={(item) => item.barbershop_id}
         renderItem={({ item }) => (
-          <BarbershopCard
-            shop={item}
-            onPress={() =>
-              navigation.navigate('BarbershopDetail', {
-                barbershopId: item.barbershop_id,
-              })
-            }
-          />
+          <View style={styles.cardWrapper}>
+            <BarbershopCard
+              shop={item}
+              onPress={() =>
+                navigation.navigate('BarbershopDetail', {
+                  barbershopId: item.barbershop_id,
+                })
+              }
+            />
+          </View>
         )}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.listContent}
@@ -343,6 +345,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 32,
+  },
+  cardWrapper: {
+    paddingHorizontal: 16,
   },
 });
 
