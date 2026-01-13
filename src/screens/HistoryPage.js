@@ -27,12 +27,12 @@ const HistoryPage = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [reviewStates, setReviewStates] = useState({});
 
+  // Note: fetchBookings is intentionally not in dependencies. 
+  // We only want to fetch when screen comes into focus, not when fetchBookings changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useFocusEffect(
     useCallback(() => {
       fetchBookings();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      // Note: fetchBookings is intentionally not in dependencies. 
-      // We only want to fetch when screen comes into focus, not when fetchBookings changes.
     }, [])
   );
 
