@@ -16,12 +16,14 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 import BarbershopCard from '../components/BarbershopCard';
+import ServiceCategories from '../components/ServiceCategories';
+import UpcomingScheduleCard from '../components/UpcomingScheduleCard';
 import Geolocation from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Palet warna utama (sesuai dengan desain sebelumnya)
 const COLORS = {
-  primary: '#7C3AED',
+  primary: '#4F46E5',
   background: '#FFFFFF',
   surface: '#FFFFFF',
   textPrimary: '#1E1B4B',
@@ -45,6 +47,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [useMyLocation, setUseMyLocation] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [upcomingBooking, setUpcomingBooking] = useState(null);
 
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition(
@@ -91,17 +94,36 @@ const HomePage = () => {
     }
   }, [useMyLocation, userLocation]);
 
+  const fetchUpcomingBooking = useCallback(async () => {
+    try {
+      const response = await api.get('/bookings/upcoming');
+      if (response.data && response.data.length > 0) {
+        setUpcomingBooking(response.data[0]);
+      }
+    } catch (error) {
+      // Silently fail - upcoming booking is optional
+      console.log('No upcoming bookings found');
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     fetchBarbershops();
-  }, [fetchBarbershops]);
+    fetchUpcomingBooking();
+  }, [fetchBarbershops, fetchUpcomingBooking]);
 
   const renderHeader = () => (
     <View style={styles.headerWrapper}>
-      {/* Greeting */}
-      <View style={styles.greetingSection}>
-        <Text style={styles.greetingText}>Temukan Gayamu</Text>
-        <Text style={styles.userName}>Hai, {user?.name || 'Tamu'}!</Text>
+      {/* Greeting with Notification Icon */}
+      <View style={styles.topBar}>
+        <View style={styles.greetingSection}>
+          <Text style={styles.greetingText}>Hi, {user?.name || 'Tamu'} 👋</Text>
+          <Text style={styles.locationText}>📍 {user?.city || 'Jakarta'}</Text>
+        </View>
+        <TouchableOpacity style={styles.notificationButton}>
+          <Icon name="notifications" size={24} color={COLORS.textPrimary} />
+          <View style={styles.notificationBadge} />
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -109,13 +131,24 @@ const HomePage = () => {
         <View style={styles.searchInputWrapper}>
           <Icon name="search" size={20} color={COLORS.textSecondary} />
           <TextInput
-            placeholder="Cari barbershop atau layanan..."
+            placeholder="Cari barbershop..."
             placeholderTextColor={COLORS.textSecondary}
             style={styles.searchInput}
             editable={false}
           />
         </View>
       </View>
+
+      {/* Service Categories */}
+      <ServiceCategories onSelectCategory={() => {}} />
+
+      {/* Upcoming Schedule */}
+      {upcomingBooking && (
+        <UpcomingScheduleCard 
+          booking={upcomingBooking}
+          onDetailPress={() => navigation.navigate('Main', { screen: 'Pesanan' })}
+        />
+      )}
 
       {/* Location Filter Chip */}
       <View style={styles.filterContainer}>
@@ -152,7 +185,7 @@ const HomePage = () => {
 
       {/* Section Title */}
       <Text style={styles.sectionTitle}>
-        {useMyLocation ? 'Barbershop Terdekat' : 'Paling Populer'}
+        {useMyLocation ? 'Rekomendasi Terdekat' : 'Barbershop Populer'}
       </Text>
     </View>
   );
@@ -172,17 +205,19 @@ const HomePage = () => {
         data={barbershops}
         keyExtractor={(item) => item.barbershop_id}
         renderItem={({ item }) => (
-          <BarbershopCard
-            shop={item}
-            onPress={() =>
-              navigation.navigate('BarbershopDetail', {
-                barbershopId: item.barbershop_id,
-              })
-            }
-          />
+          <View style={styles.cardWrapper}>
+            <BarbershopCard
+              shop={item}
+              onPress={() =>
+                navigation.navigate('BarbershopDetail', {
+                  barbershopId: item.barbershop_id,
+                })
+              }
+            />
+          </View>
         )}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -211,21 +246,50 @@ const styles = StyleSheet.create({
     paddingTop: SIZES.padding,
     paddingBottom: 8,
   },
-  greetingSection: {
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
-  greetingText: {
-    fontSize: SIZES.h1,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
+  greetingSection: {
+    flex: 1,
   },
-  userName: {
+  greetingText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  locationText: {
     fontSize: SIZES.body,
     color: COLORS.textSecondary,
     marginTop: 4,
   },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+  },
   searchContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   searchInputWrapper: {
     backgroundColor: COLORS.surface,
@@ -278,6 +342,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textPrimary,
     marginBottom: 16,
+  },
+  listContent: {
+    paddingBottom: 32,
+  },
+  cardWrapper: {
+    paddingHorizontal: 16,
   },
 });
 
