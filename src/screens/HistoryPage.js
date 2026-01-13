@@ -31,6 +31,8 @@ const HistoryPage = () => {
     useCallback(() => {
       fetchBookings();
       // eslint-disable-next-line react-hooks/exhaustive-deps
+      // Note: fetchBookings is intentionally not in dependencies. 
+      // We only want to fetch when screen comes into focus, not when fetchBookings changes.
     }, [])
   );
 

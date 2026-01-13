@@ -7,6 +7,7 @@ import api from './api';
  * Mengambil booking yang akan datang (upcoming)
  * Endpoint: GET /bookings/upcoming
  * 
+ * @async
  * @returns {Promise<Object|null>} Booking object atau null jika tidak ada
  * @throws {Error} Jika terjadi kesalahan jaringan atau server error
  */
@@ -90,6 +91,7 @@ export const getUpcomingBooking = async () => {
  * Mengambil semua booking milik user
  * Endpoint: GET /bookings/my-bookings
  * 
+ * @async
  * @returns {Promise<Array>} Array of booking objects
  * @throws {Error} Jika terjadi kesalahan
  */
@@ -125,6 +127,7 @@ export const getMyBookings = async () => {
  * Cek ketersediaan staff dan waktu booking
  * Endpoint: GET /bookings/check-availability
  * 
+ * @async
  * @param {Object} params - Query parameters
  * @param {string} params.barbershop_id - ID barbershop
  * @param {string} params.date - Tanggal booking (YYYY-MM-DD)
@@ -150,6 +153,9 @@ export const checkAvailability = async (params) => {
       params,
     });
     
+    // Log error details but return empty availability as fallback
+    console.warn('⚠️ Mengembalikan data ketersediaan kosong sebagai fallback');
+    
     // Return empty availability on error
     return {
       unavailable_staff_ids: [],
@@ -162,6 +168,7 @@ export const checkAvailability = async (params) => {
  * Membuat booking baru
  * Endpoint: POST /bookings
  * 
+ * @async
  * @param {Object} bookingData - Data booking
  * @returns {Promise<Object>} Created booking object
  * @throws {Error} Jika terjadi kesalahan
