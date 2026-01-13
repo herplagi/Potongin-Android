@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS, SIZES } from '../theme/theme';
+import { COLORS } from '../theme/theme';
 
 const UpcomingScheduleCard = ({ booking, onDetailPress }) => {
   if (!booking) {

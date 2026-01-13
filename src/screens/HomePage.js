@@ -48,7 +48,6 @@ const HomePage = () => {
   const [useMyLocation, setUseMyLocation] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [upcomingBooking, setUpcomingBooking] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition(
@@ -141,7 +140,7 @@ const HomePage = () => {
       </View>
 
       {/* Service Categories */}
-      <ServiceCategories onSelectCategory={setSelectedCategory} />
+      <ServiceCategories onSelectCategory={() => {}} />
 
       {/* Upcoming Schedule */}
       {upcomingBooking && (
@@ -216,7 +215,7 @@ const HomePage = () => {
           />
         )}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -341,6 +340,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textPrimary,
     marginBottom: 16,
+  },
+  listContent: {
+    paddingBottom: 32,
   },
 });
 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS, SIZES } from '../theme/theme';
+import { COLORS } from '../theme/theme';
 
 const categories = [
   { id: 'potong', name: 'Potong', icon: 'content-cut' },
