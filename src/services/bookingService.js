@@ -105,9 +105,19 @@ export const getMyBookings = async () => {
       console.warn(`⚠️ Status tidak normal: ${response.status}`);
     }
     
-    const bookings = response.data || [];
-    console.log(`✅ Berhasil mengambil ${bookings.length} booking`);
-    return bookings;
+    // Validasi bahwa response.data adalah array
+    if (!response.data) {
+      console.warn('⚠️ Response data kosong, mengembalikan array kosong');
+      return [];
+    }
+    
+    if (!Array.isArray(response.data)) {
+      console.warn('⚠️ Response data bukan array, mengembalikan array kosong:', typeof response.data);
+      return [];
+    }
+    
+    console.log(`✅ Berhasil mengambil ${response.data.length} booking`);
+    return response.data;
   } catch (error) {
     console.error('❌ Error mengambil my-bookings:', {
       message: error.message,
@@ -153,7 +163,12 @@ export const checkAvailability = async (params) => {
       params,
     });
     
-    // Log error details but return empty availability as fallback
+    // Throw error for authentication/authorization issues
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      throw new Error('Sesi Anda telah berakhir. Silakan login kembali.');
+    }
+    
+    // For other errors, log and return empty availability as fallback
     console.warn('⚠️ Mengembalikan data ketersediaan kosong sebagai fallback');
     
     // Return empty availability on error
