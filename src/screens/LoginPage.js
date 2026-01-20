@@ -1,4 +1,4 @@
-// src/screens/LoginPage.js - GAYA KREATIF & IMMERSIVE
+// src/screens/LoginPage.js - MODERN DESIGN WITHOUT EXTERNAL LIBS
 import React, { useState } from 'react';
 import {
   View,
@@ -11,14 +11,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
+
+const { width, height } = Dimensions.get('window');
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
   const navigation = useNavigation();
@@ -71,183 +76,284 @@ const LoginPage = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Selamat Datang</Text>
-          <Text style={styles.subtitle}>Masuk untuk menemukan gaya terbaikmu</Text>
-        </View>
-
-        {/* Form */}
-        <View style={styles.card}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="contoh@email.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#A7A6BB"
-              editable={!loading}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#A7A6BB"
-              editable={!loading}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
-            disabled={loading}
-            style={styles.forgotPasswordContainer}
+    <View style={styles.container}>
+      <View style={styles.gradientBackground}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
-          </TouchableOpacity>
+            {/* Logo/Icon Section */}
+            <View style={styles.logoContainer}>
+              <View style={styles.logoCircle}>
+                <Icon name="cut" size={60} color="#FFF" />
+              </View>
+              <Text style={styles.brandName}>Potongin</Text>
+              <Text style={styles.brandTagline}>Your Style, Our Passion</Text>
+            </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Masuk</Text>
-            )}
-          </TouchableOpacity>
+            {/* Form Card */}
+            <View style={styles.formCard}>
+              <Text style={styles.welcomeText}>Selamat Datang!</Text>
+              <Text style={styles.welcomeSubtext}>Login untuk melanjutkan</Text>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-            disabled={loading}
-            style={styles.linkContainer}
-          >
-            <Text style={styles.linkText}>
-              Belum punya akun?{' '}
-              <Text style={styles.linkTextBold}>Daftar sekarang</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="mail-outline" size={22} color="#7C3AED" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="lock-closed-outline" size={22} color="#7C3AED" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <Icon
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Forgot Password */}
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword')}
+                disabled={loading}
+                style={styles.forgotPasswordContainer}
+              >
+                <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
+              </TouchableOpacity>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                <View style={styles.loginButtonContent}>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.loginButtonText}>Masuk</Text>
+                      <Icon name="arrow-forward" size={20} color="#FFF" />
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>atau</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              {/* Register Link */}
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerText}>Belum punya akun? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Register')}
+                  disabled={loading}
+                >
+                  <Text style={styles.registerLink}>Daftar Sekarang</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#7C3AED',
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 40,
   },
-  header: {
-    marginBottom: 32,
+  logoContainer: {
     alignItems: 'center',
+    marginBottom: 40,
   },
-  title: {
-    fontSize: 32,
+  logoCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  brandName: {
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#FFF',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  brandTagline: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  formCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 24,
+    borderRadius: 30,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  welcomeText: {
+    fontSize: 28,
     fontWeight: '800',
-    color: '#1E1B4B',
+    color: '#1F2937',
     marginBottom: 8,
   },
-  subtitle: {
+  welcomeSubtext: {
     fontSize: 16,
-    color: '#6B6A82',
-    textAlign: 'center',
-    lineHeight: 22,
+    color: '#6B7280',
+    marginBottom: 32,
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 18,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    paddingRight: 16,
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E1B4B',
-    marginBottom: 10,
+  inputIconContainer: {
+    paddingLeft: 16,
+    paddingRight: 12,
   },
   input: {
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
+    flex: 1,
     paddingVertical: 16,
-    borderRadius: 14,
     fontSize: 16,
-    color: '#1E1B4B',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    color: '#1F2937',
   },
-  button: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    backgroundColor: '#C4B5FD',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  linkContainer: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#6B6A82',
-    fontSize: 14,
-  },
-  linkTextBold: {
-    color: '#7C3AED',
-    fontWeight: '700',
+  eyeIcon: {
+    padding: 4,
   },
   forgotPasswordContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
+    alignSelf: 'flex-end',
+    marginBottom: 24,
   },
   forgotPasswordText: {
     color: '#7C3AED',
     fontSize: 14,
     fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 24,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#C4B5FD',
+    opacity: 0.7,
+  },
+  loginButtonContent: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loginButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerText: {
+    color: '#6B7280',
+    fontSize: 15,
+  },
+  registerLink: {
+    color: '#7C3AED',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 

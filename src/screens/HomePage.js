@@ -1,5 +1,4 @@
-// src/screens/HomePage.js - GAYA KREATIF & IMMERSIVE
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -8,43 +7,62 @@ import {
   FlatList,
   ActivityIndicator,
   TextInput,
-  TouchableOpacity,
   Alert,
   Pressable,
+  StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 import BarbershopCard from '../components/BarbershopCard';
 import Geolocation from '@react-native-community/geolocation';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-
-// Palet warna utama (sesuai dengan desain sebelumnya)
-const COLORS = {
-  primary: '#7C3AED',
-  background: '#FFFFFF',
-  surface: '#FFFFFF',
-  textPrimary: '#1E1B4B',
-  textSecondary: '#6B6A82',
-};
-
-const SIZES = {
-  padding: 16,
-  margin: 20,
-  radius: 16,
-  h1: 28,
-  h2: 20,
-  body: 15,
-  caption: 13,
-};
+import Icon from 'react-native-vector-icons/Feather';
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../theme/theme';
 
 const HomePage = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
   const [barbershops, setBarbershops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [useMyLocation, setUseMyLocation] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(''); // ✅ TAMBAH state untuk debounced search
+  const [filterCategory, setFilterCategory] = useState('all');
+  
+  // ✅ TAMBAH useRef untuk debounce timer
+  const searchTimeoutRef = useRef(null);
+
+  // Categories for filtering
+  const categories = [
+    { id: 'all', label: 'Semua', icon: 'grid' },
+    { id: 'nearby', label: 'Terdekat', icon: 'navigation' },
+    { id: 'popular', label: 'Populer', icon: 'trending-up' },
+    { id: 'top-rated', label: 'Rating Tinggi', icon: 'star' },
+  ];
+
+  // ✅ TAMBAH useEffect untuk debounce search query
+  useEffect(() => {
+    // Clear timeout sebelumnya
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set timeout baru - tunggu 500ms setelah user berhenti mengetik
+    searchTimeoutRef.current = setTimeout(() => {
+      console.log('🔍 Debounced search:', searchQuery);
+      setDebouncedSearchQuery(searchQuery);
+    }, 800); // ✅ 500ms delay, bisa disesuaikan (300-800ms)
+
+    // Cleanup function
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition(
@@ -52,232 +70,379 @@ const HomePage = () => {
         const { latitude, longitude } = position.coords;
         setUserLocation({ latitude, longitude });
         setUseMyLocation(true);
+        setFilterCategory('nearby');
       },
       (error) => {
-        console.log('❌ Error getting location:', error);
-        Alert.alert(
-          'Lokasi Gagal',
-          'Tidak dapat mengakses lokasi Anda. Pastikan izin lokasi diberikan dan GPS aktif.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Lokasi Gagal', 'Pastikan izin lokasi diberikan dan GPS aktif.');
         setUseMyLocation(false);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
 
-  const fetchBarbershops = useCallback(async () => {
+  const fetchBarbershops = useCallback(async (isRefreshing = false) => {
     try {
+      if (!isRefreshing) setLoading(true);
+      
       let url = '/barbershops';
       const params = [];
-
+      
+      // Location filter
       if (useMyLocation && userLocation) {
         params.push(`latitude=${userLocation.latitude}`);
         params.push(`longitude=${userLocation.longitude}`);
-        params.push(`max_distance=0.5`); // 500 meter
+        params.push(`max_distance=5`);
       }
-
-      if (params.length > 0) {
-        url += '?' + params.join('&');
+      
+      // Category filter
+      if (filterCategory === 'popular') {
+        params.push('sort=popular');
+      } else if (filterCategory === 'top-rated') {
+        params.push('sort=rating');
       }
+      
+      // Search filter - ✅ GUNAKAN debouncedSearchQuery
+      if (debouncedSearchQuery.trim()) {
+        params.push(`search=${encodeURIComponent(debouncedSearchQuery.trim())}`);
+      }
+      
+      if (params.length > 0) url += '?' + params.join('&');
 
       const response = await api.get(url);
       setBarbershops(response.data);
     } catch (error) {
-      console.error('❌ Gagal memuat barbershop:', error);
       Alert.alert('Error', 'Gagal memuat daftar barbershop.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [useMyLocation, userLocation]);
+  }, [useMyLocation, userLocation, filterCategory, debouncedSearchQuery]); // ✅ GANTI searchQuery dengan debouncedSearchQuery
 
   useEffect(() => {
-    setLoading(true);
     fetchBarbershops();
   }, [fetchBarbershops]);
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchBarbershops(true);
+  };
+
+  const handleCategoryPress = (categoryId) => {
+    if (categoryId === 'nearby') {
+      if (!userLocation) {
+        getCurrentLocation();
+      } else {
+        setUseMyLocation(true);
+        setFilterCategory(categoryId);
+      }
+    } else {
+      setUseMyLocation(false);
+      setFilterCategory(categoryId);
+    }
+  };
+
+  // ✅ TAMBAH fungsi untuk handle clear search
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setDebouncedSearchQuery(''); // Clear immediately
+  };
+
   const renderHeader = () => (
-    <View style={styles.headerWrapper}>
-      {/* Greeting */}
-      <View style={styles.greetingSection}>
-        <Text style={styles.greetingText}>Temukan Gayamu</Text>
-        <Text style={styles.userName}>Hai, {user?.name || 'Tamu'}!</Text>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Icon name="search" size={20} color={COLORS.textSecondary} />
-          <TextInput
-            placeholder="Cari barbershop atau layanan..."
-            placeholderTextColor={COLORS.textSecondary}
-            style={styles.searchInput}
-            editable={false}
-          />
-        </View>
-      </View>
-
-      {/* Location Filter Chip */}
-      <View style={styles.filterContainer}>
-        <Pressable
-          style={[
-            styles.locationChip,
-            useMyLocation && styles.locationChipActive,
-          ]}
-          onPress={() => {
-            if (!useMyLocation) {
-              getCurrentLocation();
-            } else {
-              setUseMyLocation(false);
-              setUserLocation(null);
-            }
-          }}
-          android_ripple={{ color: useMyLocation ? '#E0D6FF' : '#D1C4E9' }}
-        >
-          <Icon
-            name={useMyLocation ? 'location-on' : 'location-off'}
-            size={18}
-            color={useMyLocation ? 'white' : COLORS.primary}
-          />
-          <Text
-            style={[
-              styles.locationChipText,
-              useMyLocation && styles.locationChipTextActive,
-            ]}
-          >
-            {useMyLocation ? 'Terdekat' : 'Lihat Semua'}
+    <View style={styles.headerContainer}>
+      {/* Welcome Section */}
+      <View style={styles.welcomeSection}>
+        <View style={styles.welcomeContent}>
+          <Text style={styles.greetingText}>
+            Halo, {user?.name?.split(' ')[0] || 'Tamu'} 👋
           </Text>
+          <Text style={styles.subtitleText}>
+            Temukan barbershop terbaik untukmu
+          </Text>
+        </View>
+        <Pressable
+          style={styles.profileButton}
+          onPress={() => navigation.navigate('Akun')}
+        >
+          <View style={styles.profileCircle}>
+            <Text style={styles.profileInitial}>
+              {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+            </Text>
+          </View>
         </Pressable>
       </View>
 
-      {/* Section Title */}
-      <Text style={styles.sectionTitle}>
-        {useMyLocation ? 'Barbershop Terdekat' : 'Paling Populer'}
-      </Text>
+      {/* Search Bar - ✅ HAPUS Pressable wrapper yang disable input */}
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={20} color={COLORS.textSecondary} />
+        <TextInput
+          placeholder="Cari barbershop atau layanan..."
+          placeholderTextColor={COLORS.textTertiary}
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search" // ✅ TAMBAH untuk keyboard
+          autoCorrect={false} // ✅ TAMBAH
+          autoCapitalize="none" // ✅ TAMBAH
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={handleClearSearch}>
+            <Icon name="x-circle" size={18} color={COLORS.textSecondary} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* ✅ TAMBAH Search Indicator */}
+      {searchQuery !== debouncedSearchQuery && searchQuery.length > 0 && (
+        <View style={styles.searchingIndicator}>
+          <ActivityIndicator size="small" color={COLORS.primary} />
+          <Text style={styles.searchingText}>Mencari...</Text>
+        </View>
+      )}
+
+      {/* Category Pills */}
+      <View style={styles.categoryContainer}>
+        {categories.map((category) => (
+          <Pressable
+            key={category.id}
+            style={[
+              styles.categoryPill,
+              filterCategory === category.id && styles.categoryPillActive,
+            ]}
+            onPress={() => handleCategoryPress(category.id)}
+          >
+            <Icon
+              name={category.icon}
+              size={14}
+              color={filterCategory === category.id ? COLORS.textInverse : COLORS.textSecondary}
+            />
+            <Text
+              style={[
+                styles.categoryText,
+                filterCategory === category.id && styles.categoryTextActive,
+              ]}
+            >
+              {category.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Results Header */}
+      <View style={styles.resultsHeader}>
+        <Text style={styles.resultsTitle}>
+          {debouncedSearchQuery.trim() ? `Hasil pencarian "${debouncedSearchQuery}"` :
+           filterCategory === 'nearby' && useMyLocation
+            ? 'Di Sekitarmu'
+            : filterCategory === 'popular'
+            ? 'Paling Populer'
+            : filterCategory === 'top-rated'
+            ? 'Rating Tertinggi'
+            : 'Semua Barbershop'}
+        </Text>
+        <Text style={styles.resultsCount}>
+          {barbershops.length} tempat
+        </Text>
+      </View>
     </View>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Menemukan barbershop terbaik untuk Anda...</Text>
+        <Text style={styles.loadingText}>Mencari barbershop terbaik...</Text>
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <FlatList
         data={barbershops}
         keyExtractor={(item) => item.barbershop_id}
         renderItem={({ item }) => (
           <BarbershopCard
             shop={item}
-            onPress={() =>
-              navigation.navigate('BarbershopDetail', {
-                barbershopId: item.barbershop_id,
-              })
-            }
+            onPress={() => navigation.navigate('BarbershopDetail', { barbershopId: item.barbershop_id })}
           />
         )}
         ListHeaderComponent={renderHeader}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Icon name="inbox" size={48} color={COLORS.textTertiary} />
+            <Text style={styles.emptyTitle}>Tidak ada barbershop</Text>
+            <Text style={styles.emptySubtitle}>
+              {debouncedSearchQuery ? 'Coba kata kunci lain' : 'Belum ada barbershop terdaftar'}
+            </Text>
+          </View>
+        )}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       />
     </SafeAreaView>
   );
 };
 
+// ✅ TAMBAH styles untuk searching indicator
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: COLORS.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: COLORS.primary,
-    fontWeight: '500',
+    marginTop: SPACING.base,
+    fontSize: TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.weight.medium,
   },
-  headerWrapper: {
-    paddingHorizontal: SIZES.padding,
-    paddingTop: SIZES.padding,
-    paddingBottom: 8,
+  headerContainer: {
+    paddingHorizontal: SPACING.screenPadding,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
-  greetingSection: {
-    marginBottom: 20,
+  welcomeSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  welcomeContent: {
+    flex: 1,
   },
   greetingText: {
-    fontSize: SIZES.h1,
-    fontWeight: '800',
+    fontSize: TYPOGRAPHY.h3,
+    fontWeight: TYPOGRAPHY.weight.bold,
     color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
   },
-  userName: {
-    fontSize: SIZES.body,
+  subtitleText: {
+    fontSize: TYPOGRAPHY.bodySmall,
     color: COLORS.textSecondary,
-    marginTop: 4,
+  },
+  profileButton: {
+    marginLeft: SPACING.base,
+  },
+  profileCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.sm,
+  },
+  profileInitial: {
+    fontSize: TYPOGRAPHY.h5,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.textInverse,
   },
   searchContainer: {
-    marginBottom: 16,
-  },
-  searchInputWrapper: {
-    backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radius,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.base,
+    height: 52,
+    borderRadius: RADIUS.md,
+    marginBottom: SPACING.sm, // ✅ Ubah dari base ke sm
+    gap: SPACING.sm,
+    ...SHADOWS.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: SIZES.body,
+    fontSize: TYPOGRAPHY.body,
     color: COLORS.textPrimary,
-    marginLeft: 12,
+    paddingVertical: 0,
   },
-  filterContainer: {
-    marginBottom: 20,
-    alignItems: 'flex-start',
-  },
-  locationChip: {
+  // ✅ TAMBAH style baru
+  searchingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F3FF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 50,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
+    justifyContent: 'center',
+    paddingVertical: SPACING.xs,
+    marginBottom: SPACING.sm,
+    gap: SPACING.sm,
   },
-  locationChipActive: {
+  searchingText: {
+    fontSize: TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontWeight: TYPOGRAPHY.weight.medium,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  categoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+    gap: SPACING.xs,
+    ...SHADOWS.sm,
+  },
+  categoryPillActive: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    ...SHADOWS.md,
   },
-  locationChipText: {
-    color: COLORS.primary,
-    fontWeight: '700',
-    fontSize: SIZES.caption,
-    marginLeft: 8,
+  categoryText: {
+    fontSize: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weight.medium,
+    color: COLORS.textSecondary,
   },
-  locationChipTextActive: {
-    color: 'white',
+  categoryTextActive: {
+    color: COLORS.textInverse,
   },
-  sectionTitle: {
-    fontSize: SIZES.h2,
-    fontWeight: '800',
+  resultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.base,
+  },
+  resultsTitle: {
+    fontSize: TYPOGRAPHY.h4,
+    fontWeight: TYPOGRAPHY.weight.bold,
     color: COLORS.textPrimary,
-    marginBottom: 16,
+  },
+  resultsCount: {
+    fontSize: TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+  },
+  listContent: {
+    paddingHorizontal: SPACING.screenPadding,
+    paddingBottom: SPACING.xxl,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.huge,
+  },
+  emptyTitle: {
+    fontSize: TYPOGRAPHY.h4,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.textPrimary,
+    marginTop: SPACING.base,
+  },
+  emptySubtitle: {
+    fontSize: TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.xs,
   },
 });
 

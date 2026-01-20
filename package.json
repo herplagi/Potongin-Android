@@ -19,6 +19,7 @@
     "axios": "^1.12.2",
     "expo-constants": "^18.0.10",
     "expo-device": "^8.0.9",
+    "expo-linear-gradient": "~15.0.8",
     "expo-notifications": "^0.32.12",
     "jwt-decode": "^4.0.0",
     "react": "19.1.0",

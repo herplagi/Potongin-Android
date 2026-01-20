@@ -1,4 +1,4 @@
-// src/screens/RegisterPage.js - GAYA KREATIF & IMMERSIVE
+// src/screens/RegisterPage.js - MODERN DESIGN WITHOUT EXTERNAL LIBS
 import React, { useState } from 'react';
 import {
   View,
@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { register } from '../services/authService';
 
 const RegisterPage = () => {
@@ -21,6 +22,7 @@ const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const validateInputs = () => {
@@ -62,14 +64,14 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       const userData = { name, email, phoneNumber, password };
-      const response = await register(userData);
+      await register(userData);
 
       Alert.alert(
-        '🎉 Sukses!',
+        '🎉 Berhasil!',
         'Akun Anda berhasil dibuat. Silakan login untuk melanjutkan.',
         [
           {
-            text: 'OK',
+            text: 'Login Sekarang',
             onPress: () => {
               setName('');
               setEmail('');
@@ -91,185 +93,281 @@ const RegisterPage = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Buat Akun Baru</Text>
-          <Text style={styles.subtitle}>Bergabung untuk menemukan barbershop terbaik</Text>
-        </View>
-
-        {/* Form Card */}
-        <View style={styles.card}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nama Lengkap</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Masukkan nama lengkap"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              placeholderTextColor="#A7A6BB"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Alamat Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="contoh@email.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              placeholderTextColor="#A7A6BB"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nomor Telepon</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="08xxxxxxxxxx"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              placeholderTextColor="#A7A6BB"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#A7A6BB"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={loading}
+    <View style={styles.container}>
+      <View style={styles.gradientBackground}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Daftar</Text>
-            )}
-          </TouchableOpacity>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              >
+                <Icon name="arrow-back" size={24} color="#FFF" />
+              </TouchableOpacity>
+              <View style={styles.headerContent}>
+                <Text style={styles.headerTitle}>Buat Akun Baru</Text>
+                <Text style={styles.headerSubtitle}>Bergabung dengan Potongin</Text>
+              </View>
+            </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            style={styles.linkContainer}
-          >
-            <Text style={styles.linkText}>
-              Sudah punya akun?{' '}
-              <Text style={styles.linkTextBold}>Masuk sekarang</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* Form Card */}
+            <View style={styles.formCard}>
+              {/* Name Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="person-outline" size={22} color="#EC4899" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nama Lengkap"
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+              </View>
+
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="mail-outline" size={22} color="#EC4899" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+              </View>
+
+              {/* Phone Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="call-outline" size={22} color="#EC4899" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nomor Telepon"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="lock-closed-outline" size={22} color="#EC4899" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password (min 6 karakter)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <Icon
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Register Button */}
+              <TouchableOpacity
+                style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+                onPress={handleRegister}
+                disabled={loading}
+              >
+                <View style={styles.registerButtonContent}>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.registerButtonText}>Daftar</Text>
+                      <Icon name="checkmark-circle" size={24} color="#FFF" />
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              {/* Terms */}
+              <Text style={styles.termsText}>
+                Dengan mendaftar, Anda menyetujui{' '}
+                <Text style={styles.termsLink}>Syarat & Ketentuan</Text> serta{' '}
+                <Text style={styles.termsLink}>Kebijakan Privasi</Text> kami
+              </Text>
+
+              {/* Login Link */}
+              <View style={styles.loginContainer}>
+                <Text style={styles.loginText}>Sudah punya akun? </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Login')}
+                  disabled={loading}
+                >
+                  <Text style={styles.loginLink}>Masuk Sekarang</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#EC4899',
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 40,
   },
   header: {
+    paddingHorizontal: 24,
     marginBottom: 32,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1E1B4B',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B6A82',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 18,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
-  },
-  inputGroup: {
     marginBottom: 20,
   },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E1B4B',
-    marginBottom: 10,
+  headerContent: {
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFF',
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '500',
+  },
+  formCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 24,
+    borderRadius: 30,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    paddingRight: 16,
+  },
+  inputIconContainer: {
+    paddingLeft: 16,
+    paddingRight: 12,
   },
   input: {
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
+    flex: 1,
     paddingVertical: 16,
-    borderRadius: 14,
     fontSize: 16,
-    color: '#1E1B4B',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    color: '#1F2937',
   },
-  button: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
+  eyeIcon: {
+    padding: 4,
+  },
+  registerButton: {
+    backgroundColor: '#EC4899',
+    borderRadius: 16,
     marginTop: 8,
-    shadowColor: '#7C3AED',
+    marginBottom: 20,
+    shadowColor: '#EC4899',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  buttonDisabled: {
-    backgroundColor: '#C4B5FD',
-    shadowOpacity: 0,
-    elevation: 0,
+  registerButtonDisabled: {
+    backgroundColor: '#FBCFE8',
+    opacity: 0.7,
   },
-  buttonText: {
-    color: 'white',
+  registerButtonContent: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  registerButtonText: {
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: '700',
-    fontSize: 16,
   },
-  linkContainer: {
-    marginTop: 24,
+  termsText: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 24,
+  },
+  termsLink: {
+    color: '#EC4899',
+    fontWeight: '600',
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  linkText: {
-    color: '#6B6A82',
-    fontSize: 14,
+  loginText: {
+    color: '#6B7280',
+    fontSize: 15,
   },
-  linkTextBold: {
-    color: '#7C3AED',
+  loginLink: {
+    color: '#EC4899',
+    fontSize: 15,
     fontWeight: '700',
   },
 });

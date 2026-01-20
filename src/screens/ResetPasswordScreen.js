@@ -1,4 +1,4 @@
-// src/screens/ResetPasswordScreen.js
+// src/screens/ResetPasswordScreen.js - MODERN DESIGN WITHOUT EXTERNAL LIBS
 import React, { useState } from 'react';
 import {
   View,
@@ -25,8 +25,6 @@ const ResetPasswordScreen = () => {
   
   const navigation = useNavigation();
   const route = useRoute();
-  
-  // Get token from navigation params or deep link
   const token = route.params?.token || '';
 
   const validateInputs = () => {
@@ -65,11 +63,11 @@ const ResetPasswordScreen = () => {
     try {
       await resetPassword(token, newPassword);
       Alert.alert(
-        'Berhasil',
+        '✅ Berhasil',
         'Password Anda telah berhasil direset. Silakan login dengan password baru.',
         [
           {
-            text: 'OK',
+            text: 'Login Sekarang',
             onPress: () => navigation.navigate('Login'),
           },
         ]
@@ -91,194 +89,258 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Reset Password</Text>
-          <Text style={styles.subtitle}>
-            Masukkan password baru untuk akun Anda
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.gradientBackground}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.iconContainer}>
+                <View style={styles.iconCircle}>
+                  <Icon name="shield-checkmark" size={50} color="#FFF" />
+                </View>
+              </View>
+              
+              <Text style={styles.headerTitle}>Reset Password</Text>
+              <Text style={styles.headerSubtitle}>
+                Buat password baru yang kuat untuk akun Anda
+              </Text>
+            </View>
 
-        {/* Form Card */}
-        <View style={styles.card}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password Baru</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Minimal 6 karakter"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry={!showNewPassword}
-                placeholderTextColor="#A7A6BB"
-                editable={!loading}
-              />
+            {/* Form Card */}
+            <View style={styles.formCard}>
+              {/* New Password */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="lock-closed-outline" size={22} color="#10B981" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password Baru"
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                  disabled={loading}
+                >
+                  <Icon
+                    name={showNewPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Confirm Password */}
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="lock-open-outline" size={22} color="#10B981" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Konfirmasi Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
+                >
+                  <Icon
+                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Password Requirements */}
+              <View style={styles.requirementsBox}>
+                <Icon name="information-circle-outline" size={20} color="#6B7280" />
+                <Text style={styles.requirementsText}>Password minimal 6 karakter</Text>
+              </View>
+
+              {/* Submit Button */}
               <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowNewPassword(!showNewPassword)}
+                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
                 disabled={loading}
               >
-                <Icon
-                  name={showNewPassword ? 'eye-off' : 'eye'}
-                  size={22}
-                  color="#6B6A82"
-                />
+                <View style={styles.submitButtonContent}>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.submitButtonText}>Reset Password</Text>
+                      <Icon name="checkmark-done-circle" size={24} color="#FFF" />
+                    </>
+                  )}
+                </View>
               </TouchableOpacity>
-            </View>
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Konfirmasi Password Baru</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Ulangi password baru"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
-                placeholderTextColor="#A7A6BB"
-                editable={!loading}
-              />
+              {/* Back to Login */}
               <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                onPress={() => navigation.navigate('Login')}
                 disabled={loading}
+                style={styles.backToLoginContainer}
               >
-                <Icon
-                  name={showConfirmPassword ? 'eye-off' : 'eye'}
-                  size={22}
-                  color="#6B6A82"
-                />
+                <Text style={styles.backToLoginText}>Kembali ke Login</Text>
               </TouchableOpacity>
             </View>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Reset Password</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            disabled={loading}
-            style={styles.linkContainer}
-          >
-            <Text style={styles.linkText}>Kembali ke Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#10B981',
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 40,
   },
   header: {
+    paddingHorizontal: 24,
     marginBottom: 32,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1E1B4B',
-    marginBottom: 8,
+  iconContainer: {
+    marginBottom: 24,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B6A82',
+  iconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFF',
+    marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.95)',
     textAlign: 'center',
     lineHeight: 22,
+    paddingHorizontal: 10,
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 18,
+  formCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 24,
+    borderRadius: 30,
     padding: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E1B4B',
-    marginBottom: 10,
-  },
-  passwordContainer: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    borderRadius: 14,
-    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
+    paddingRight: 16,
   },
-  passwordInput: {
+  inputIconContainer: {
+    paddingLeft: 16,
+    paddingRight: 12,
+  },
+  input: {
     flex: 1,
-    paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    color: '#1E1B4B',
+    color: '#1F2937',
   },
   eyeIcon: {
-    paddingHorizontal: 16,
+    padding: 4,
   },
-  button: {
-    backgroundColor: '#7C3AED',
-    paddingVertical: 16,
-    borderRadius: 14,
+  requirementsBox: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#7C3AED',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 24,
+    gap: 8,
+  },
+  requirementsText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  submitButton: {
+    backgroundColor: '#10B981',
+    borderRadius: 16,
+    marginBottom: 24,
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  buttonDisabled: {
-    backgroundColor: '#C4B5FD',
-    shadowOpacity: 0,
-    elevation: 0,
+  submitButtonDisabled: {
+    backgroundColor: '#A7F3D0',
+    opacity: 0.7,
   },
-  buttonText: {
-    color: 'white',
+  submitButtonContent: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  submitButtonText: {
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: '700',
-    fontSize: 16,
   },
-  linkContainer: {
-    marginTop: 24,
+  backToLoginContainer: {
     alignItems: 'center',
   },
-  linkText: {
-    color: '#7C3AED',
+  backToLoginText: {
+    color: '#10B981',
+    fontSize: 15,
     fontWeight: '700',
-    fontSize: 14,
   },
 });
 

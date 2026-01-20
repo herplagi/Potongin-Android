@@ -1,4 +1,4 @@
-// src/screens/ForgotPasswordScreen.js
+// src/screens/ForgotPasswordScreen.js - MODERN DESIGN WITHOUT EXTERNAL LIBS
 import React, { useState } from 'react';
 import {
   View,
@@ -13,6 +13,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { forgotPassword } from '../services/authService';
 
 const ForgotPasswordScreen = () => {
@@ -42,7 +43,7 @@ const ForgotPasswordScreen = () => {
     try {
       await forgotPassword(email);
       Alert.alert(
-        'Berhasil',
+        '✅ Berhasil',
         'Jika email terdaftar, link reset password telah dikirim. Silakan cek inbox atau folder spam.',
         [
           {
@@ -55,7 +56,7 @@ const ForgotPasswordScreen = () => {
       console.error('Forgot password error:', error);
       let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
       if (error.message === 'Network Error') {
-        errorMessage = 'Tidak dapat terhubung ke server. Pastikan backend sedang berjalan.';
+        errorMessage = 'Tidak dapat terhubung ke server.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'Koneksi timeout. Silakan coba lagi.';
       }
@@ -66,149 +67,217 @@ const ForgotPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Lupa Password?</Text>
-          <Text style={styles.subtitle}>
-            Masukkan email untuk menerima link reset password
-          </Text>
-        </View>
-
-        {/* Form Card */}
-        <View style={styles.card}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="contoh@email.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholderTextColor="#A7A6BB"
-              editable={!loading}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
+    <View style={styles.container}>
+      <View style={styles.gradientBackground}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Kirim Link Reset</Text>
-            )}
-          </TouchableOpacity>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              >
+                <Icon name="arrow-back" size={24} color="#FFF" />
+              </TouchableOpacity>
+              
+              <View style={styles.iconContainer}>
+                <View style={styles.iconCircle}>
+                  <Icon name="lock-closed" size={50} color="#FFF" />
+                </View>
+              </View>
+              
+              <Text style={styles.headerTitle}>Lupa Password?</Text>
+              <Text style={styles.headerSubtitle}>
+                Jangan khawatir, kami akan mengirimkan instruksi reset password ke email Anda
+              </Text>
+            </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            disabled={loading}
-            style={styles.linkContainer}
-          >
-            <Text style={styles.linkText}>Kembali ke Login</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            {/* Form Card */}
+            <View style={styles.formCard}>
+              <View style={styles.inputContainer}>
+                <View style={styles.inputIconContainer}>
+                  <Icon name="mail-outline" size={22} color="#06B6D4" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Masukkan email Anda"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholderTextColor="#9CA3AF"
+                  editable={!loading}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                <View style={styles.submitButtonContent}>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Text style={styles.submitButtonText}>Kirim Link Reset</Text>
+                      <Icon name="send" size={20} color="#FFF" />
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login')}
+                disabled={loading}
+                style={styles.backToLoginContainer}
+              >
+                <Icon name="arrow-back-circle-outline" size={20} color="#06B6D4" />
+                <Text style={styles.backToLoginText}>Kembali ke Login</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+  },
+  gradientBackground: {
+    flex: 1,
+    backgroundColor: '#06B6D4',
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 40,
   },
   header: {
+    paddingHorizontal: 24,
     marginBottom: 32,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#1E1B4B',
-    marginBottom: 8,
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 30,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B6A82',
+  iconContainer: {
+    marginBottom: 24,
+  },
+  iconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FFF',
+    marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.95)',
     textAlign: 'center',
     lineHeight: 22,
+    paddingHorizontal: 10,
   },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 18,
+  formCard: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 24,
+    borderRadius: 30,
     padding: 28,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E1B4B',
-    marginBottom: 10,
-  },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 14,
-    fontSize: 16,
-    color: '#1E1B4B',
-    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 2,
     borderColor: '#E5E7EB',
   },
-  button: {
-    backgroundColor: '#7C3AED',
+  inputIconContainer: {
+    paddingLeft: 16,
+    paddingRight: 12,
+  },
+  input: {
+    flex: 1,
     paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#7C3AED',
+    paddingRight: 16,
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  submitButton: {
+    backgroundColor: '#06B6D4',
+    borderRadius: 16,
+    marginBottom: 24,
+    shadowColor: '#06B6D4',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  buttonDisabled: {
-    backgroundColor: '#C4B5FD',
-    shadowOpacity: 0,
-    elevation: 0,
+  submitButtonDisabled: {
+    backgroundColor: '#A5F3FC',
+    opacity: 0.7,
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  linkContainer: {
-    marginTop: 24,
+  submitButtonContent: {
+    flexDirection: 'row',
+    paddingVertical: 18,
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
   },
-  linkText: {
-    color: '#7C3AED',
+  submitButtonText: {
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: '700',
-    fontSize: 14,
+  },
+  backToLoginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backToLoginText: {
+    color: '#06B6D4',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
 

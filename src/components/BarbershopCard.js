@@ -1,6 +1,8 @@
-// src/components/BarbershopCard.js - GAYA KREATIF & IMMERSIVE
+// src/components/BarbershopCard.js - FIXED STATUS BADGE
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import { COLORS, SPACING, RADIUS, TYPOGRAPHY, SHADOWS } from '../theme/theme';
 
 const BarbershopCard = ({ shop, onPress }) => {
   const imageUri = shop.main_image_url
@@ -9,27 +11,77 @@ const BarbershopCard = ({ shop, onPress }) => {
       : `http://10.0.2.2:5000${shop.main_image_url}`
     : 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop';
 
+  // Calculate distance if available
+  const distance = shop.distance ? `${shop.distance.toFixed(1)} km` : null;
+  
+  // ✅ FIX: Use is_open from backend (already calculated based on schedule)
+  const isOpen = shop.is_open === true; // Ensure boolean comparison
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.95}>
-      <Image
-        source={{ uri: imageUri }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={onPress} 
+      activeOpacity={0.95}
+    >
+      {/* Image Container with Overlay Badge */}
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        
+        {/* Status Badge */}
+        <View style={[styles.statusBadge, !isOpen && styles.closedBadge]}>
+          <View style={[styles.statusDot, !isOpen && styles.closedDot]} />
+          <Text style={[styles.statusText, !isOpen && styles.closedText]}>
+            {isOpen ? 'Buka' : 'Tutup'}
+          </Text>
+        </View>
+
+        {/* Distance Badge (if available) */}
+        {distance && (
+          <View style={styles.distanceBadge}>
+            <Icon name="navigation" size={10} color={COLORS.textInverse} />
+            <Text style={styles.distanceText}>{distance}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Info Container */}
       <View style={styles.infoContainer}>
+        {/* Name and City */}
         <Text style={styles.name} numberOfLines={1}>
           {shop.name}
         </Text>
-        <Text style={styles.city} numberOfLines={1}>
-          {shop.city}
-        </Text>
-        <View style={styles.ratingRow}>
-          <Text style={styles.rating}>
-            ⭐ {shop.average_rating?.toFixed(1) || '0.0'}
+        <View style={styles.locationRow}>
+          <Icon name="map-pin" size={12} color={COLORS.textSecondary} />
+          <Text style={styles.city} numberOfLines={1}>
+            {shop.city}
           </Text>
-          <Text style={styles.reviewCount}>
-            ({shop.review_count || 0})
-          </Text>
+        </View>
+
+        {/* Rating and Reviews */}
+        <View style={styles.footer}>
+          <View style={styles.ratingContainer}>
+            <Icon name="star" size={14} color={COLORS.accent} fill={COLORS.accent} />
+            <Text style={styles.rating}>
+              {shop.average_rating?.toFixed(1) || '0.0'}
+            </Text>
+            <Text style={styles.reviewCount}>
+              ({shop.review_count || 0})
+            </Text>
+          </View>
+
+          {/* Quick Info */}
+          {shop.service_count && (
+            <View style={styles.serviceTag}>
+              <Icon name="scissors" size={10} color={COLORS.primary} />
+              <Text style={styles.serviceCount}>
+                {shop.service_count} Layanan
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -38,49 +90,123 @@ const BarbershopCard = ({ shop, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    marginBottom: 20,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    marginBottom: SPACING.base,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    ...SHADOWS.md,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 160,
   },
   image: {
     width: '100%',
-    height: 140,
-    backgroundColor: '#F3F4F6',
+    height: '100%',
+    backgroundColor: COLORS.borderLight,
   },
-  infoContainer: {
-    padding: 16,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1E1B4B',
-    marginBottom: 4,
-  },
-  city: {
-    fontSize: 14,
-    color: '#6B6A82',
-    marginBottom: 8,
-  },
-  ratingRow: {
+  statusBadge: {
+    position: 'absolute',
+    top: SPACING.md,
+    left: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.success.bg,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
+    gap: 4,
+  },
+  closedBadge: {
+    backgroundColor: COLORS.error.bg,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.success.text,
+  },
+  closedDot: {
+    backgroundColor: COLORS.error.text,
+  },
+  statusText: {
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.success.text,
+  },
+  closedText: {
+    color: COLORS.error.text,
+  },
+  distanceBadge: {
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
+    gap: 4,
+  },
+  distanceText: {
+    fontSize: TYPOGRAPHY.tiny,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    color: COLORS.textInverse,
+  },
+  infoContainer: {
+    padding: SPACING.base,
+  },
+  name: {
+    fontSize: TYPOGRAPHY.h5,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: SPACING.md,
+  },
+  city: {
+    fontSize: TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+    flex: 1,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   rating: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E1B4B',
+    fontSize: TYPOGRAPHY.bodySmall,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    color: COLORS.textPrimary,
   },
   reviewCount: {
-    fontSize: 13,
-    color: '#7C3AED',
-    fontWeight: '600',
-    marginLeft: 6,
+    fontSize: TYPOGRAPHY.bodySmall,
+    color: COLORS.textSecondary,
+  },
+  serviceTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryBg,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.sm,
+    gap: 4,
+  },
+  serviceCount: {
+    fontSize: TYPOGRAPHY.caption,
+    fontWeight: TYPOGRAPHY.weight.medium,
+    color: COLORS.primary,
   },
 });
 

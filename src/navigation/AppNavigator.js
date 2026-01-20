@@ -17,6 +17,8 @@ import MainTabNavigator from './MainTabNavigator';
 import ReviewScreen from '../screens/ReviewScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import CheckInScreen from '../screens/CheckInScreen';
+import ReviewsPage from '../screens/ReviewsPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,7 +41,6 @@ const AppStack = () => (
       component={MainTabNavigator}
       options={{ headerShown: false }}
     />
-
     {/* Halaman lain yang bukan bagian dari tab */}
     <Stack.Screen
       name="BarbershopDetail"
@@ -86,6 +87,16 @@ const AppStack = () => (
         headerStyle: { backgroundColor: '#7C3AED' },
         headerTintColor: '#fff',
       }}
+    />
+    <Stack.Screen
+      name="CheckIn"
+      component={CheckInScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="ReviewsPage"
+      component={ReviewsPage}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

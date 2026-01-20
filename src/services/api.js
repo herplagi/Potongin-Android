@@ -1,16 +1,16 @@
-// src/services/api.js
-
+// Potongin/src/services/api.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Ganti dengan IP komputer Anda atau gunakan ngrok untuk testing
-// Untuk emulator Android: 10.0.2.2
-// Untuk device fisik: gunakan IP lokal komputer (misal: 192.168.1.100)
+// ✅ GANTI DENGAN NGROK URL ANDA
+const API_BASE_URL = 'https://interferingly-posttemporal-latrisha.ngrok-free.dev/api';
+
 const api = axios.create({
-  baseURL: 'http://10.0.2.2:5000/api',
-  timeout: 10000, // 10 detik timeout
+  baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true', // ✅ Bypass ngrok warning
   },
 });
 
@@ -22,18 +22,12 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      console.log('📤 API Request:', config.method.toUpperCase(), config.url);
+      return config;
     } catch (error) {
-      console.error('Error getting token from storage:', error);
+      console.error('Error getting token:', error);
+      return config;
     }
-
-    // Log request untuk debugging
-    console.log('API Request:', {
-      method: config.method,
-      url: config.url,
-      data: config.data,
-    });
-
-    return config;
   },
   (error) => {
     console.error('Request interceptor error:', error);
@@ -41,34 +35,24 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor untuk error handling
+// Response interceptor untuk handle errors
 api.interceptors.response.use(
   (response) => {
-    // Log response untuk debugging
-    console.log('API Response:', {
-      status: response.status,
-      data: response.data,
-    });
+    console.log('✅ API Response:', response.config.url, response.status);
     return response;
   },
-  async (error) => {
-    // Log error untuk debugging
-    console.error('API Error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
-
-    // Handle network errors
-    if (error.message === 'Network Error') {
-      console.error('Network Error: Pastikan backend sedang berjalan dan URL benar');
+  (error) => {
+    if (error.response) {
+      console.error('❌ API Error Response:', {
+        url: error.config?.url,
+        status: error.response.status,
+        data: error.response.data,
+      });
+    } else if (error.request) {
+      console.error('❌ No response received:', error.request);
+    } else {
+      console.error('❌ Request setup error:', error.message);
     }
-
-    // Handle timeout
-    if (error.code === 'ECONNABORTED') {
-      console.error('Request Timeout: Server tidak merespon dalam waktu yang ditentukan');
-    }
-
     return Promise.reject(error);
   }
 );
