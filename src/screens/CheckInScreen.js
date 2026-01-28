@@ -39,20 +39,21 @@ const CheckInScreen = () => {
         barbershopId: booking.barbershop_id,
       });
 
-      Alert.alert(
-        '✅ Check-in Berhasil!',
-        response.data.message,
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('History'),
+      Alert.alert('✅ Check-in Berhasil!', response.data.message, [
+        {
+          text: 'OK',
+          onPress: () => {
+            // ✅ PERBAIKAN: Navigate ke Riwayat tab
+            navigation.navigate('Main', {
+              screen: 'Riwayat',
+            });
           },
-        ]
-      );
+        },
+      ]);
     } catch (error) {
       Alert.alert(
         'Check-in Gagal',
-        error.response?.data?.message || 'Terjadi kesalahan'
+        error.response?.data?.message || 'Terjadi kesalahan',
       );
     } finally {
       setLoading(false);
@@ -68,27 +69,23 @@ const CheckInScreen = () => {
         qrToken: booking.qr_code_token,
       });
 
-      Alert.alert(
-        '✅ Check-in Berhasil!',
-        response.data.message,
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('History'),
-          },
-        ]
-      );
+      Alert.alert('✅ Check-in Berhasil!', response.data.message, [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('History'),
+        },
+      ]);
     } catch (error) {
       Alert.alert(
         'Check-in Gagal',
-        error.response?.data?.message || 'Terjadi kesalahan'
+        error.response?.data?.message || 'Terjadi kesalahan',
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const formatTime = (dateString) => {
+  const formatTime = dateString => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('id-ID', {
       hour: '2-digit',
@@ -96,7 +93,7 @@ const CheckInScreen = () => {
     });
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', {
       day: 'numeric',
@@ -129,16 +126,18 @@ const CheckInScreen = () => {
             <Text style={styles.barbershopName}>
               {booking.Barbershop?.name}
             </Text>
-            <Text style={styles.serviceName}>
-              {booking.Service?.name}
-            </Text>
+            <Text style={styles.serviceName}>{booking.Service?.name}</Text>
             <View style={styles.timeContainer}>
               <Icon name="calendar" size={16} color={COLORS.textSecondary} />
-              <Text style={styles.timeText}>{formatDate(booking.booking_time)}</Text>
+              <Text style={styles.timeText}>
+                {formatDate(booking.booking_time)}
+              </Text>
             </View>
             <View style={styles.timeContainer}>
               <Icon name="clock" size={16} color={COLORS.textSecondary} />
-              <Text style={styles.timeText}>{formatTime(booking.booking_time)}</Text>
+              <Text style={styles.timeText}>
+                {formatTime(booking.booking_time)}
+              </Text>
             </View>
           </View>
 
@@ -154,7 +153,11 @@ const CheckInScreen = () => {
               <Icon
                 name="key"
                 size={20}
-                color={checkInMethod === 'pin' ? COLORS.primary : COLORS.textSecondary}
+                color={
+                  checkInMethod === 'pin'
+                    ? COLORS.primary
+                    : COLORS.textSecondary
+                }
               />
               <Text
                 style={[
@@ -176,7 +179,9 @@ const CheckInScreen = () => {
               <Icon
                 name="maximize"
                 size={20}
-                color={checkInMethod === 'qr' ? COLORS.primary : COLORS.textSecondary}
+                color={
+                  checkInMethod === 'qr' ? COLORS.primary : COLORS.textSecondary
+                }
               />
               <Text
                 style={[
@@ -199,14 +204,17 @@ const CheckInScreen = () => {
               <TextInput
                 style={styles.pinInput}
                 value={pin}
-                onChangeText={(text) => setPin(text.replace(/[^0-9]/g, ''))}
+                onChangeText={text => setPin(text.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
                 maxLength={6}
                 placeholder="● ● ● ● ● ●"
                 placeholderTextColor={COLORS.textTertiary}
               />
               <TouchableOpacity
-                style={[styles.checkInButton, loading && styles.checkInButtonDisabled]}
+                style={[
+                  styles.checkInButton,
+                  loading && styles.checkInButtonDisabled,
+                ]}
                 onPress={handleCheckInWithPIN}
                 disabled={loading || pin.length !== 6}
               >
@@ -214,8 +222,14 @@ const CheckInScreen = () => {
                   <ActivityIndicator color={COLORS.surface} />
                 ) : (
                   <>
-                    <Icon name="check-circle" size={20} color={COLORS.surface} />
-                    <Text style={styles.checkInButtonText}>Check-in Sekarang</Text>
+                    <Icon
+                      name="check-circle"
+                      size={20}
+                      color={COLORS.surface}
+                    />
+                    <Text style={styles.checkInButtonText}>
+                      Check-in Sekarang
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -229,11 +243,12 @@ const CheckInScreen = () => {
                 <Icon name="maximize" size={100} color={COLORS.primary} />
                 <Text style={styles.qrText}>Tunjukkan QR ini ke Staff</Text>
               </View>
-              <Text style={styles.qrHint}>
-                atau scan QR di barbershop
-              </Text>
+              <Text style={styles.qrHint}>atau scan QR di barbershop</Text>
               <TouchableOpacity
-                style={[styles.scanButton, loading && styles.scanButtonDisabled]}
+                style={[
+                  styles.scanButton,
+                  loading && styles.scanButtonDisabled,
+                ]}
                 onPress={handleCheckInWithQR}
                 disabled={loading}
               >
@@ -253,7 +268,8 @@ const CheckInScreen = () => {
           <View style={styles.infoCard}>
             <Icon name="info" size={16} color={COLORS.primary} />
             <Text style={styles.infoText}>
-              Anda bisa check-in 30 menit sebelum jadwal hingga 15 menit setelah jadwal
+              Anda bisa check-in 30 menit sebelum jadwal hingga 15 menit setelah
+              jadwal
             </Text>
           </View>
         </View>

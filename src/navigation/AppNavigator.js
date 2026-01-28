@@ -19,6 +19,7 @@ import EditProfileScreen from '../screens/EditProfileScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import CheckInScreen from '../screens/CheckInScreen';
 import ReviewsPage from '../screens/ReviewsPage';
+import MyReviewsPage from '../screens/MyReviewsPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -96,6 +97,11 @@ const AppStack = () => (
     <Stack.Screen
       name="ReviewsPage"
       component={ReviewsPage}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="MyReviews"
+      component={MyReviewsPage}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

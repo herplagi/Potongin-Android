@@ -1,5 +1,5 @@
-// src/screens/AccountPage.js - COMPLETE REDESIGN
-import React from 'react';
+// Potongin/src/screens/AccountPage.js - UPDATE dengan upload foto
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,31 +8,99 @@ import {
   ScrollView,
   Alert,
   StatusBar,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../theme/theme';
 import Card from '../components/Card';
+import { launchImageLibrary } from 'react-native-image-picker';
+import api from '../services/api';
 
 const AccountPage = () => {
   const navigation = useNavigation();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const [uploading, setUploading] = useState(false);
+
+  // Refresh user data saat kembali ke halaman ini
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserProfile();
+    }, [])
+  );
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await api.get('/users/profile');
+      updateUser(response.data);
+    } catch (error) {
+      console.error('Fetch profile error:', error);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 800,
+        maxHeight: 800,
+      });
+
+      if (result.didCancel) {
+        return;
+      }
+
+      if (result.errorCode) {
+        Alert.alert('Error', 'Gagal memilih foto');
+        return;
+      }
+
+      const photo = result.assets[0];
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.append('picture', {
+        uri: photo.uri,
+        type: photo.type || 'image/jpeg',
+        name: photo.fileName || `photo_${Date.now()}.jpg`,
+      });
+
+      const response = await api.post('/users/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      updateUser(response.data.user);
+      Alert.alert('Berhasil', 'Foto profil berhasil diperbarui');
+    } catch (error) {
+      console.error('Upload photo error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Gagal mengupload foto');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getProfileImageUrl = () => {
+    if (!user?.picture) return null;
+    return user.picture.startsWith('http')
+      ? user.picture
+      : `http://10.0.2.2:5000${user.picture}`;
+  };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Keluar dari Akun',
-      'Apakah Anda yakin ingin keluar?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Keluar', 
-          style: 'destructive', 
-          onPress: () => logout() 
-        },
-      ]
-    );
+    Alert.alert('Keluar dari Akun', 'Apakah Anda yakin ingin keluar?', [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Keluar',
+        style: 'destructive',
+        onPress: () => logout(),
+      },
+    ]);
   };
 
   const menuSections = [
@@ -96,7 +164,7 @@ const AccountPage = () => {
           title: 'Tentang Aplikasi',
           subtitle: 'Versi 2.0.0',
           screen: null,
-          iconBg: COLORS.surfaceAlt,
+          iconBg: '#F3F4F6',
           iconColor: COLORS.textSecondary,
           comingSoon: true,
         },
@@ -123,7 +191,7 @@ const AccountPage = () => {
       <View style={[styles.iconWrapper, { backgroundColor: item.iconBg }]}>
         <Icon name={item.icon} size={20} color={item.iconColor} />
       </View>
-      
+
       <View style={styles.menuContent}>
         <View style={styles.menuTitleRow}>
           <Text style={styles.menuTitle}>{item.title}</Text>
@@ -135,7 +203,7 @@ const AccountPage = () => {
         </View>
         <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
       </View>
-      
+
       <Icon name="chevron-right" size={20} color={COLORS.textTertiary} />
     </TouchableOpacity>
   );
@@ -143,27 +211,37 @@ const AccountPage = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.headerSection}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
-              </Text>
-            </View>
-            <TouchableOpacity style={styles.editAvatarButton}>
-              <Icon name="camera" size={16} color={COLORS.surface} />
+            {getProfileImageUrl() ? (
+              <Image source={{ uri: getProfileImageUrl() }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarText}>
+                  {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+                </Text>
+              </View>
+            )}
+            
+            <TouchableOpacity
+              style={styles.editAvatarButton}
+              onPress={handleUploadPhoto}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <ActivityIndicator size="small" color={COLORS.surface} />
+              ) : (
+                <Icon name="camera" size={16} color={COLORS.surface} />
+              )}
             </TouchableOpacity>
           </View>
-          
+
           <Text style={styles.profileName}>{user?.name || 'User'}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-          
+
           {user?.phone_number && (
             <View style={styles.phoneBadge}>
               <Icon name="phone" size={12} color={COLORS.primary} />
@@ -177,7 +255,7 @@ const AccountPage = () => {
           {menuSections.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.menuSection}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
-              <Card variant="flat" noPadding style={styles.menuCard}>
+              <Card variant="flat" padding={false} style={styles.menuCard}>
                 {section.items.map((item, itemIndex) =>
                   renderMenuItem(item, itemIndex, section.items.length)
                 )}
@@ -188,21 +266,19 @@ const AccountPage = () => {
 
         {/* Logout Button */}
         <View style={styles.logoutSection}>
-          <TouchableOpacity 
-            style={styles.logoutButton} 
+          <TouchableOpacity
+            style={styles.logoutButton}
             onPress={handleLogout}
             activeOpacity={0.7}
           >
-            <Icon name="log-out" size={20} color={COLORS.error} />
+            <Icon name="log-out" size={20} color={COLORS.accentRed} />
             <Text style={styles.logoutText}>Keluar dari Akun</Text>
           </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Made with ❤️ by √∞
-          </Text>
+          <Text style={styles.footerText}>Made with ❤️ by Potongin</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -232,10 +308,12 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: RADIUS.full,
+    ...SHADOWS.lg,
+  },
+  avatarPlaceholder: {
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.colored,
   },
   avatarText: {
     color: COLORS.surface,
@@ -273,15 +351,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.full,
-    gap: SPACING.xs,
   },
   phoneText: {
     fontSize: TYPOGRAPHY.caption,
     fontWeight: TYPOGRAPHY.semibold,
     color: COLORS.primary,
+    marginLeft: 4,
   },
   menuSections: {
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
   },
   menuSection: {
     marginBottom: SPACING.xl,
@@ -303,8 +381,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.divider,
-    gap: SPACING.md,
+    borderBottomColor: COLORS.borderLight,
   },
   menuItemLast: {
     borderBottomWidth: 0,
@@ -315,6 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: SPACING.md,
   },
   menuContent: {
     flex: 1,
@@ -322,7 +400,6 @@ const styles = StyleSheet.create({
   menuTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
   },
   menuTitle: {
     fontSize: TYPOGRAPHY.h5,
@@ -335,6 +412,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,
     borderRadius: RADIUS.xs,
+    marginLeft: SPACING.sm,
   },
   comingSoonText: {
     fontSize: TYPOGRAPHY.tiny,
@@ -346,7 +424,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   logoutSection: {
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
     marginBottom: SPACING.xl,
   },
   logoutButton: {
@@ -358,12 +436,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    gap: SPACING.sm,
   },
   logoutText: {
     fontSize: TYPOGRAPHY.h5,
     fontWeight: TYPOGRAPHY.semibold,
-    color: COLORS.error,
+    color: COLORS.accentRed,
+    marginLeft: SPACING.sm,
   },
   footer: {
     alignItems: 'center',

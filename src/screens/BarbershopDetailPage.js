@@ -357,7 +357,7 @@ const BarbershopDetailPage = () => {
             </View>
           </View>
 
-          {/* Quick Actions */}
+          {/* Quick Actions
           <View style={styles.quickActions}>
             <TouchableOpacity style={styles.actionButton}>
               <Icon name="phone" size={20} color={COLORS.primary} />
@@ -373,7 +373,7 @@ const BarbershopDetailPage = () => {
               <Icon name="share-2" size={20} color={COLORS.primary} />
               <Text style={styles.actionText}>Bagikan</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* About Section */}
           {barbershop.description && (

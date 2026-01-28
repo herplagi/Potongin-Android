@@ -1,4 +1,4 @@
-// src/components/BarbershopCard.js - FIXED STATUS BADGE
+// src/components/BarbershopCard.js - FINAL FIX
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
@@ -11,11 +11,8 @@ const BarbershopCard = ({ shop, onPress }) => {
       : `http://10.0.2.2:5000${shop.main_image_url}`
     : 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&h=300&fit=crop';
 
-  // Calculate distance if available
   const distance = shop.distance ? `${shop.distance.toFixed(1)} km` : null;
-  
-  // ✅ FIX: Use is_open from backend (already calculated based on schedule)
-  const isOpen = shop.is_open === true; // Ensure boolean comparison
+  const isOpen = shop.is_open === true;
 
   return (
     <TouchableOpacity 
@@ -23,7 +20,6 @@ const BarbershopCard = ({ shop, onPress }) => {
       onPress={onPress} 
       activeOpacity={0.95}
     >
-      {/* Image Container with Overlay Badge */}
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: imageUri }}
@@ -31,7 +27,6 @@ const BarbershopCard = ({ shop, onPress }) => {
           resizeMode="cover"
         />
         
-        {/* Status Badge */}
         <View style={[styles.statusBadge, !isOpen && styles.closedBadge]}>
           <View style={[styles.statusDot, !isOpen && styles.closedDot]} />
           <Text style={[styles.statusText, !isOpen && styles.closedText]}>
@@ -39,49 +34,44 @@ const BarbershopCard = ({ shop, onPress }) => {
           </Text>
         </View>
 
-        {/* Distance Badge (if available) */}
-        {distance && (
+        {distance ? (
           <View style={styles.distanceBadge}>
             <Icon name="navigation" size={10} color={COLORS.textInverse} />
             <Text style={styles.distanceText}>{distance}</Text>
           </View>
-        )}
+        ) : null}
       </View>
 
-      {/* Info Container */}
       <View style={styles.infoContainer}>
-        {/* Name and City */}
         <Text style={styles.name} numberOfLines={1}>
-          {shop.name}
+          {shop.name || 'Barbershop'}
         </Text>
         <View style={styles.locationRow}>
           <Icon name="map-pin" size={12} color={COLORS.textSecondary} />
           <Text style={styles.city} numberOfLines={1}>
-            {shop.city}
+            {shop.address || shop.city || 'Lokasi tidak tersedia'}
           </Text>
         </View>
 
-        {/* Rating and Reviews */}
         <View style={styles.footer}>
           <View style={styles.ratingContainer}>
             <Icon name="star" size={14} color={COLORS.accent} fill={COLORS.accent} />
             <Text style={styles.rating}>
-              {shop.average_rating?.toFixed(1) || '0.0'}
+              {shop.average_rating ? shop.average_rating.toFixed(1) : '0.0'}
             </Text>
             <Text style={styles.reviewCount}>
               ({shop.review_count || 0})
             </Text>
           </View>
 
-          {/* Quick Info */}
-          {shop.service_count && (
+          {(shop.service_count !== null && shop.service_count !== undefined) ? (
             <View style={styles.serviceTag}>
               <Icon name="scissors" size={10} color={COLORS.primary} />
               <Text style={styles.serviceCount}>
                 {shop.service_count} Layanan
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -112,31 +102,31 @@ const styles = StyleSheet.create({
     left: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.success.bg,
+    backgroundColor: '#ECFDF5',
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.md,
-    gap: 4,
   },
   closedBadge: {
-    backgroundColor: COLORS.error.bg,
+    backgroundColor: '#FEF2F2',
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.success.text,
+    backgroundColor: '#059669',
+    marginRight: 4,
   },
   closedDot: {
-    backgroundColor: COLORS.error.text,
+    backgroundColor: '#DC2626',
   },
   statusText: {
     fontSize: TYPOGRAPHY.tiny,
-    fontWeight: TYPOGRAPHY.weight.semibold,
-    color: COLORS.success.text,
+    fontWeight: TYPOGRAPHY.semibold,
+    color: '#059669',
   },
   closedText: {
-    color: COLORS.error.text,
+    color: '#DC2626',
   },
   distanceBadge: {
     position: 'absolute',
@@ -148,32 +138,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.md,
-    gap: 4,
   },
   distanceText: {
     fontSize: TYPOGRAPHY.tiny,
-    fontWeight: TYPOGRAPHY.weight.semibold,
+    fontWeight: TYPOGRAPHY.semibold,
     color: COLORS.textInverse,
+    marginLeft: 4,
   },
   infoContainer: {
     padding: SPACING.base,
   },
   name: {
     fontSize: TYPOGRAPHY.h5,
-    fontWeight: TYPOGRAPHY.weight.bold,
+    fontWeight: TYPOGRAPHY.bold,
     color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     marginBottom: SPACING.md,
   },
   city: {
     fontSize: TYPOGRAPHY.bodySmall,
     color: COLORS.textSecondary,
     flex: 1,
+    marginLeft: 4,
   },
   footer: {
     flexDirection: 'row',
@@ -183,16 +173,17 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
   rating: {
     fontSize: TYPOGRAPHY.bodySmall,
-    fontWeight: TYPOGRAPHY.weight.bold,
+    fontWeight: TYPOGRAPHY.bold,
     color: COLORS.textPrimary,
+    marginLeft: 4,
   },
   reviewCount: {
     fontSize: TYPOGRAPHY.bodySmall,
     color: COLORS.textSecondary,
+    marginLeft: 2,
   },
   serviceTag: {
     flexDirection: 'row',
@@ -201,12 +192,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.sm,
-    gap: 4,
   },
   serviceCount: {
     fontSize: TYPOGRAPHY.caption,
-    fontWeight: TYPOGRAPHY.weight.medium,
+    fontWeight: TYPOGRAPHY.medium,
     color: COLORS.primary,
+    marginLeft: 4,
   },
 });
 
